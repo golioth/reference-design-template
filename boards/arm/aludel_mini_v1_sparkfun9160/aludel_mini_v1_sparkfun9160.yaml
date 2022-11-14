@@ -1,0 +1,15 @@
+identifier: aludel_mini_v1_sparkfun9160
+name: Golioth-Aludel-Mini-sparkfun9160
+type: mcu
+arch: arm
+toolchain:
+  - gnuarmemb
+  - xtools
+  - zephyr
+ram: 64
+flash: 256
+supported:
+  - i2c
+  - pwm
+  - watchdog
+  - counter
