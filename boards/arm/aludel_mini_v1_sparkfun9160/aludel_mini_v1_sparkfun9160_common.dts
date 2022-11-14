@@ -20,7 +20,10 @@
 		compatible = "gpio-leds";
 		blue_led: led_0 {
 			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
-			label = "Blue LED (D7)";
+			label = "Blue LED";
+		};
+		golioth_led: golioth_led {
+			gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
 		};
 	};
 
@@ -37,6 +40,10 @@
 			gpios = <&gpio0 12 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "Switch 1";
 		};
+		user_btn_n: user_btn_n {
+			gpios = <&gpio0 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Aludel User Button";
+		};
 	};
 
 	/* These aliases are provided for compatibility with samples */
@@ -45,10 +52,14 @@
 		bootloader-led0 = &blue_led;
 		pwm-led0 = &pwm_led0;
 		sw0 = &button0;
+		sw1 = &user_btn_n;
 		mcuboot-button0 = &button0;
 		mcuboot-led0 = &blue_led;
 		watchdog0 = &wdt0;
 		accel0 = &lis2dh;
+		click-uart = &uart2;
+		click-i2c = &i2c1;
+		golioth-led = &golioth_led;
 	};
 
 	/* Used for accessing other pins */
