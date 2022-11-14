@@ -7,8 +7,8 @@
 #include "aludel_mini_v1_sparkfun9160_common-pinctrl.dtsi"
 
 / {
-	model = "Sparkfun nRF9160 Thing Plus";
-	compatible = "sparkfun,thing-plus-nrf9160";
+	model = "Aludel Mini v1 Sparkfun9160";
+	compatible = "aludel,mini-v1-sparkfun9160";
 
 	chosen {
 		zephyr,console = &uart0;
