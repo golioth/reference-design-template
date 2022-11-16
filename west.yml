@@ -25,5 +25,10 @@ manifest:
           - qcbor
           - segger
           - tinycrypt
+
+    - name: golioth-zephyr-boards
+      path: app/golioth-boards
+      revision: 807f33254c1747e5d6ab13051efbc5c19f893551
+      url: git@github.com:golioth/golioth-zephyr-boards.git
   self:
     path: app
