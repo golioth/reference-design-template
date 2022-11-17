@@ -25,9 +25,7 @@ static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 static const struct gpio_dt_spec golioth_led = GPIO_DT_SPEC_GET(
 		DT_ALIAS(golioth_led), gpios);
 
-K_SEM_DEFINE(sem_connected, 0, 1);
-K_SEM_DEFINE(sem_downloading, 0, 1);
-K_SEM_DEFINE(sem_downloaded, 0, 1);
+K_SEM_DEFINE(connected, 0, 1);
 
 #define REBOOT_DELAY_SEC	1
 
@@ -39,6 +37,43 @@ struct dfu_ctx {
 
 static struct dfu_ctx update_ctx;
 static enum golioth_dfu_result dfu_initial_result = GOLIOTH_DFU_RESULT_INITIAL;
+
+static struct k_work downloading_work;
+static struct k_work downloaded_work;
+static struct k_work updating_work;
+
+static void downloading_work_handler(struct k_work *work) {
+	int err = golioth_fw_report_state(client, "main",
+				      current_version_str,
+				      update_ctx.version,
+				      GOLIOTH_FW_STATE_DOWNLOADING,
+				      GOLIOTH_DFU_RESULT_INITIAL);
+	if (err) {
+		LOG_ERR("Failed to update to '%s' state: %d", "downloading", err);
+	}
+}
+
+static void downloaded_work_handler(struct k_work *work) {
+	int err = golioth_fw_report_state(client, "main",
+					  current_version_str,
+					  update_ctx.version,
+					  GOLIOTH_FW_STATE_DOWNLOADED,
+					  GOLIOTH_DFU_RESULT_INITIAL);
+	if (err) {
+		LOG_ERR("Failed to update to '%s' state: %d", "downloaded", err);
+	}
+}
+
+static void updating_work_handler(struct k_work *work) {
+	int err = golioth_fw_report_state(client, "main",
+					  current_version_str,
+					  update_ctx.version,
+					  GOLIOTH_FW_STATE_UPDATING,
+					  GOLIOTH_DFU_RESULT_INITIAL);
+	if (err) {
+		LOG_ERR("Failed to update to '%s' state: %d", "updating", err);
+	}
+}
 
 static int data_received(struct golioth_req_rsp *rsp)
 {
@@ -68,7 +103,26 @@ static int data_received(struct golioth_req_rsp *rsp)
 	}
 
 	if (last) {
-		k_sem_give(&sem_downloaded);
+		k_work_submit(&downloaded_work);
+		k_work_submit(&updating_work);
+		k_yield(); /* Give schedule a change to run work queue */
+
+		LOG_INF("Requesting upgrade");
+
+		err = boot_request_upgrade(BOOT_UPGRADE_TEST);
+		if (err) {
+			LOG_ERR("Failed to request upgrade: %d", err);
+			return err;
+		}
+
+		LOG_INF("Rebooting in %d second(s)", REBOOT_DELAY_SEC);
+
+		/* Synchronize logs */
+		LOG_PANIC();
+
+		k_sleep(K_SECONDS(REBOOT_DELAY_SEC));
+
+		sys_reboot(SYS_REBOOT_COLD);
 	}
 
 	if (rsp->get_next) {
@@ -138,8 +192,9 @@ static int golioth_desired_update(struct golioth_req_rsp *rsp)
 
 	uri_p = uri_strip_leading_slash(uri, &uri_len);
 
-	k_sem_give(&sem_downloading);
 	dfu->downloading_started = true;
+
+	k_work_submit(&downloading_work);
 
 	err = golioth_fw_download(client, uri_p, uri_len, data_received, dfu);
 	if (err) {
@@ -154,7 +209,7 @@ static void golioth_on_connect(struct golioth_client *client)
 {
 	int err;
 
-	k_sem_give(&sem_connected);
+	k_sem_give(&connected);
 
 	err = golioth_fw_observe_desired(client, golioth_desired_update, &update_ctx);
 	if (err) {
@@ -173,6 +228,10 @@ void main(void)
 	if (err) {
 		LOG_ERR("Unable to configure LED for Golioth Logo");
 	}
+
+	k_work_init(&downloading_work, downloading_work_handler);
+	k_work_init(&downloaded_work, downloaded_work_handler);
+	k_work_init(&updating_work, updating_work_handler);
 
 	if (!boot_is_img_confirmed()) {
 		/*
@@ -196,7 +255,7 @@ void main(void)
 	client->on_connect = golioth_on_connect;
 	golioth_system_client_start();
 
-	k_sem_take(&sem_connected, K_FOREVER);
+	k_sem_take(&connected, K_FOREVER);
 	gpio_pin_set_dt(&golioth_led, 1);
 
 	err = golioth_fw_report_state(client, "main",
@@ -207,54 +266,6 @@ void main(void)
 	if (err) {
 		LOG_ERR("Failed to report firmware state: %d", err);
 	}
-
-	k_sem_take(&sem_downloading, K_FOREVER);
-
-	err = golioth_fw_report_state(client, "main",
-				      current_version_str,
-				      update_ctx.version,
-				      GOLIOTH_FW_STATE_DOWNLOADING,
-				      GOLIOTH_DFU_RESULT_INITIAL);
-	if (err) {
-		LOG_ERR("Failed to update to '%s' state: %d", "downloading", err);
-	}
-
-	k_sem_take(&sem_downloaded, K_FOREVER);
-
-	err = golioth_fw_report_state(client, "main",
-				      current_version_str,
-				      update_ctx.version,
-				      GOLIOTH_FW_STATE_DOWNLOADED,
-				      GOLIOTH_DFU_RESULT_INITIAL);
-	if (err) {
-		LOG_ERR("Failed to update to '%s' state: %d", "downloaded", err);
-	}
-
-	err = golioth_fw_report_state(client, "main",
-				      current_version_str,
-				      update_ctx.version,
-				      GOLIOTH_FW_STATE_UPDATING,
-				      GOLIOTH_DFU_RESULT_INITIAL);
-	if (err) {
-		LOG_ERR("Failed to update to '%s' state: %d", "updating", err);
-	}
-
-	LOG_INF("Requesting upgrade");
-
-	err = boot_request_upgrade(BOOT_UPGRADE_TEST);
-	if (err) {
-		LOG_ERR("Failed to request upgrade: %d", err);
-		return;
-	}
-
-	LOG_INF("Rebooting in %d second(s)", REBOOT_DELAY_SEC);
-
-	/* Synchronize logs */
-	LOG_PANIC();
-
-	k_sleep(K_SECONDS(REBOOT_DELAY_SEC));
-
-	sys_reboot(SYS_REBOOT_COLD);
 
 	while (true) {
 		LOG_INF("Sending hello! %d", counter);
