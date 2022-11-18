@@ -21,12 +21,21 @@ K_SEM_DEFINE(connected, 0, 1);
 
 static const struct gpio_dt_spec golioth_led = GPIO_DT_SPEC_GET(
 		DT_ALIAS(golioth_led), gpios);
+static const struct gpio_dt_spec user_btn = GPIO_DT_SPEC_GET(
+		DT_ALIAS(sw1), gpios);
+static struct gpio_callback button_cb_data;
 
 static void golioth_on_connect(struct golioth_client *client)
 {
 	k_sem_give(&connected);
 
 	app_dfu_observe();
+}
+
+void button_pressed(const struct device *dev, struct gpio_callback *cb,
+					uint32_t pins)
+{
+	LOG_DBG("Button pressed at %d", k_cycle_get_32());
 }
 
 void main(void)
@@ -54,6 +63,25 @@ void main(void)
 	gpio_pin_set_dt(&golioth_led, 1);
 
 	app_dfu_report_state_to_golioth();
+
+	/* Set up user button */
+	err = gpio_pin_configure_dt(&user_btn, GPIO_INPUT);
+	if (err != 0) {
+		printk("Error %d: failed to configure %s pin %d\n",
+				err, user_btn.port->name, user_btn.pin);
+		return;
+	}
+
+	err = gpio_pin_interrupt_configure_dt(&user_btn,
+	                                      GPIO_INT_EDGE_TO_ACTIVE);
+	if (err != 0) {
+		printk("Error %d: failed to configure interrupt on %s pin %d\n",
+				err, user_btn.port->name, user_btn.pin);
+		return;
+	}
+
+	gpio_init_callback(&button_cb_data, button_pressed, BIT(user_btn.pin));
+	gpio_add_callback(user_btn.port, &button_cb_data);
 
 	while (true) {
 		LOG_INF("Sending hello! %d", counter);
