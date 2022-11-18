@@ -8,4 +8,5 @@ project(greenhouse)
 
 target_sources(app PRIVATE src/main.c)
 target_sources(app PRIVATE src/app_dfu.c)
+target_sources(app PRIVATE src/app_work.c)
 target_sources_ifdef(CONFIG_BOOTLOADER_MCUBOOT app PRIVATE src/flash.c)

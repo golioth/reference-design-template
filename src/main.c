@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2021 Golioth, Inc.
+ * Copyright (c) 2022 Golioth, Inc.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(golioth_hello, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(golioth_greenhouse, LOG_LEVEL_DBG);
 
 #include <net/golioth/fw.h>
 #include <net/golioth/settings.h>
@@ -13,6 +13,7 @@ LOG_MODULE_REGISTER(golioth_hello, LOG_LEVEL_DBG);
 #include <samples/common/net_connect.h>
 #include <zephyr/net/coap.h>
 #include "app_dfu.h"
+#include "app_work.h"
 
 #include <zephyr/drivers/gpio.h>
 
@@ -79,31 +80,40 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb,
 
 void main(void)
 {
-	int counter = 0;
 	int err;
 
-	LOG_DBG("Start Hello sample");
+	LOG_DBG("Start Golioth Greenhouse Controller sample");
 
 	/* Get system thread id so loop delay change event can wake main */
 	_system_thread = k_current_get();
 
+	/* Initialize Golioth logo LED */
 	err = gpio_pin_configure_dt(&golioth_led, GPIO_OUTPUT_INACTIVE);
 	if (err) {
 		LOG_ERR("Unable to configure LED for Golioth Logo");
 	}
 
+	/* Initialize app work */
+	app_work_init(client);
+
+	/* Initialize DFU components */
 	app_dfu_init(client);
 
+	/* Run WiFi/DHCP if necessary */
 	if (IS_ENABLED(CONFIG_GOLIOTH_SAMPLES_COMMON)) {
 		net_connect();
 	}
 
+	/* Start Golioth client */
 	client->on_connect = golioth_on_connect;
 	golioth_system_client_start();
 
+	/* Block until connected to Golioth */
 	k_sem_take(&connected, K_FOREVER);
+	/* Turn on Golioth logo LED once connected */
 	gpio_pin_set_dt(&golioth_led, 1);
 
+	/* Report current DFU version to Golioth */
 	app_dfu_report_state_to_golioth();
 
 	/* Set up user button */
@@ -126,13 +136,8 @@ void main(void)
 	gpio_add_callback(user_btn.port, &button_cb_data);
 
 	while (true) {
-		LOG_INF("Sending hello! %d", counter);
+		app_work_submit();
 
-		err = golioth_send_hello(client);
-		if (err) {
-			LOG_WRN("Failed to send hello!");
-		}
-		++counter;
 		k_sleep(K_SECONDS(_loop_delay_s));
 	}
 }
