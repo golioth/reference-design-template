@@ -41,16 +41,21 @@ enum golioth_settings_status on_setting(
 			return GOLIOTH_SETTINGS_VALUE_FORMAT_NOT_VALID;
 		}
 
-		/* This setting must be in range [1, 100], return an error if it's not */
-		if (value->i64 < 1 || value->i64 > 100) {
+		/* Limit to 12 hour max delay: [1, 43200] */
+		if (value->i64 < 1 || value->i64 > 43200) {
 			return GOLIOTH_SETTINGS_VALUE_OUTSIDE_RANGE;
 		}
 
-		/* Setting has passed all checks, so apply it to the loop delay */
-		_loop_delay_s = (int32_t)value->i64;
-		LOG_INF("Set loop delay to %d seconds", _loop_delay_s);
+		/* Only update if value has changed */
+		if (_loop_delay_s != (int32_t)value->i64) {
+			_loop_delay_s = (int32_t)value->i64;
+			LOG_INF("Set loop delay to %d seconds", _loop_delay_s);
 
-		k_wakeup(_system_thread);
+			k_wakeup(_system_thread);
+		}
+		else {
+			LOG_DBG("Received LOOP_DELAY_S already matches local value.");
+		}
 		return GOLIOTH_SETTINGS_SUCCESS;
 	}
 
