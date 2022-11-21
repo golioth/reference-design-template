@@ -38,13 +38,8 @@ static void golioth_on_connect(struct golioth_client *client)
 	k_sem_give(&connected);
 
 	app_dfu_observe();
+	app_register_settings(client);
 	app_register_rpc(client);
-
-	int err = golioth_settings_register_callback(client, on_setting);
-
-	if (err) {
-		LOG_ERR("Failed to register settings callback: %d", err);
-	}
 }
 
 void button_pressed(const struct device *dev, struct gpio_callback *cb,

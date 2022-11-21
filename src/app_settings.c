@@ -49,3 +49,12 @@ enum golioth_settings_status on_setting(
 	return GOLIOTH_SETTINGS_KEY_NOT_RECOGNIZED;
 }
 
+int app_register_settings(struct golioth_client *settings_client) {
+	int err = golioth_settings_register_callback(settings_client, on_setting);
+
+	if (err) {
+		LOG_ERR("Failed to register settings callback: %d", err);
+	}
+
+	return err;
+}

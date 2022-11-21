@@ -8,8 +8,6 @@
 #define __APP_SETTINGS_H__
 
 int32_t get_loop_delay_s(void);
-enum golioth_settings_status on_setting(
-		const char *key,
-		const struct golioth_settings_value *value);
+int app_register_settings(struct golioth_client *settings_client);
 
 #endif /* __APP_SETTINGS_H__ */
