@@ -7,11 +7,10 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(golioth_greenhouse, LOG_LEVEL_DBG);
 
-#include <net/golioth/fw.h>
-#include <net/golioth/settings.h>
 #include <net/golioth/system_client.h>
 #include <samples/common/net_connect.h>
 #include <zephyr/net/coap.h>
+#include "app_settings.h"
 #include "app_work.h"
 #include "dfu/app_dfu.h"
 
@@ -21,7 +20,6 @@ static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 
 K_SEM_DEFINE(connected, 0, 1);
 
-static int32_t _loop_delay_s = 60;
 static k_tid_t _system_thread = 0;
 
 static const struct gpio_dt_spec golioth_led = GPIO_DT_SPEC_GET(
@@ -30,37 +28,8 @@ static const struct gpio_dt_spec user_btn = GPIO_DT_SPEC_GET(
 		DT_ALIAS(sw1), gpios);
 static struct gpio_callback button_cb_data;
 
-enum golioth_settings_status on_setting(
-		const char *key,
-		const struct golioth_settings_value *value)
-{
-	LOG_DBG("Received setting: key = %s, type = %d", key, value->type);
-	if (strcmp(key, "LOOP_DELAY_S") == 0) {
-		/* This setting is expected to be numeric, return an error if it's not */
-		if (value->type != GOLIOTH_SETTINGS_VALUE_TYPE_INT64) {
-			return GOLIOTH_SETTINGS_VALUE_FORMAT_NOT_VALID;
-		}
-
-		/* Limit to 12 hour max delay: [1, 43200] */
-		if (value->i64 < 1 || value->i64 > 43200) {
-			return GOLIOTH_SETTINGS_VALUE_OUTSIDE_RANGE;
-		}
-
-		/* Only update if value has changed */
-		if (_loop_delay_s != (int32_t)value->i64) {
-			_loop_delay_s = (int32_t)value->i64;
-			LOG_INF("Set loop delay to %d seconds", _loop_delay_s);
-
-			k_wakeup(_system_thread);
-		}
-		else {
-			LOG_DBG("Received LOOP_DELAY_S already matches local value.");
-		}
-		return GOLIOTH_SETTINGS_SUCCESS;
-	}
-
-	/* If the setting is not recognized, we should return an error */
-	return GOLIOTH_SETTINGS_KEY_NOT_RECOGNIZED;
+void wake_system_thread(void) {
+	k_wakeup(_system_thread);
 }
 
 static void golioth_on_connect(struct golioth_client *client)
@@ -143,6 +112,6 @@ void main(void)
 	while (true) {
 		app_work_submit();
 
-		k_sleep(K_SECONDS(_loop_delay_s));
+		k_sleep(K_SECONDS(get_loop_delay_s()));
 	}
 }
