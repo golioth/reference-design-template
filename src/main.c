@@ -10,6 +10,7 @@ LOG_MODULE_REGISTER(golioth_greenhouse, LOG_LEVEL_DBG);
 #include <net/golioth/system_client.h>
 #include <samples/common/net_connect.h>
 #include <zephyr/net/coap.h>
+#include "app_rpc.h"
 #include "app_settings.h"
 #include "app_work.h"
 #include "dfu/app_dfu.h"
@@ -37,6 +38,7 @@ static void golioth_on_connect(struct golioth_client *client)
 	k_sem_give(&connected);
 
 	app_dfu_observe();
+	app_register_rpc(client);
 
 	int err = golioth_settings_register_callback(client, on_setting);
 
