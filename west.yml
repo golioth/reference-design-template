@@ -4,7 +4,7 @@ manifest:
   projects:
     - name: golioth
       path: modules/lib/golioth
-      revision: 5733c96a10f6476cb3d7f25f39b62b81b3ba0e10
+      revision: v0.5.0
       url: https://github.com/golioth/golioth-zephyr-sdk
       west-commands: scripts/west-commands.yml
       import:
