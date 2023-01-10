@@ -47,6 +47,7 @@ static void golioth_on_connect(struct golioth_client *client)
 		app_register_settings(client);
 		app_register_rpc(client);
 	}
+	++iteration;
 }
 
 void button_pressed(const struct device *dev, struct gpio_callback *cb,
