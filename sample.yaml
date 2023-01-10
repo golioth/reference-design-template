@@ -1,6 +1,6 @@
 sample:
-  description: Golioth Greenhouse Reference Design
-  name: greenhouse
+  description: Golioth Reference Design Template
+  name: rd_template
 common:
   harness: net
   platform_allow: >
