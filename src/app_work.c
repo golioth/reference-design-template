@@ -28,7 +28,8 @@ struct mcp3201_data {
 };
 
 /* Formatting string for sending sensor JSON to Golioth */
-#define JSON_FMT	"{\"counter\":%d}"
+#define JSON_FMT	"{\"ch0\":%d,\"ch1\":%d}"
+#define ADC_ENDP	"sensor"
 
 /* Callback for LightDB Stream */
 static int async_error_handler(struct golioth_req_rsp *rsp) {
@@ -68,12 +69,29 @@ static int process_adc_reading(uint8_t buf_data[4], struct mcp3201_data *adc_dat
 	return 0;
 }
 
+static int push_adc_to_golioth(uint16_t ch0_data, uint16_t ch1_data) {
+	int err;
+	char json_buf[30];
+
+	snprintk(json_buf, sizeof(json_buf), JSON_FMT, ch0_data, ch1_data);
+
+	err = golioth_stream_push_cb(client, ADC_ENDP,
+			GOLIOTH_CONTENT_FORMAT_APP_JSON, json_buf, strlen(json_buf),
+			async_error_handler, NULL);
+
+	if (err) {
+		LOG_ERR("Failed to send sensor data to Golioth: %d", err);
+		return err;
+	}
+
+	return 0;
+}
+
 /* This will be called by the main() loop */
 /* Do all of your work here! */
 void app_work_sensor_read(void) {
 	int err;
-	char json_buf[256];
-	struct mcp3201_data adc_data;
+	struct mcp3201_data ch0_data, ch1_data;
 
 	static int8_t my_buffer[4] = {0};
 	struct spi_buf my_spi_buffer[1];
@@ -86,54 +104,30 @@ void app_work_sensor_read(void) {
 	LOG_DBG("Received 4 bytes: %d %d %d %d",
 			my_buffer[0],my_buffer[1],my_buffer[2], my_buffer[3]);
 
-	err = process_adc_reading(my_buffer, &adc_data);
+	err = process_adc_reading(my_buffer, &ch0_data);
 	if (err == 0) {
 		LOG_INF("MCP3201_ch0 received two ADC readings: 0x%04x\t0x%04x",
-				adc_data.val1, adc_data.val2);
+				ch0_data.val1, ch0_data.val2);
 	}
-
 
 	err = spi_read_dt(&mcp3201_ch1, &rx_buff);
 	if (err) { LOG_INF("spi_read status: %d", err); }
 	LOG_DBG("Received 4 bytes: %d %d %d %d",
 			my_buffer[0],my_buffer[1],my_buffer[2], my_buffer[3]);
 
-	err = process_adc_reading(my_buffer, &adc_data);
+	err = process_adc_reading(my_buffer, &ch1_data);
 	if (err == 0) {
 		LOG_INF("MCP3201_ch1 received two ADC readings: 0x%04x\t0x%04x",
 				adc_data.val1, adc_data.val2);
 	}
 
-	/* For this demo, we just send Hello to Golioth */
-	static uint8_t counter = 0;
-
-	LOG_INF("Sending hello! %d", counter);
-
-	err = golioth_send_hello(client);
-	if (err) {
-		LOG_WRN("Failed to send hello!");
-	}
-
 	/* Send sensor data to Golioth */
-	/* For this demo we just fake it */
-	snprintk(json_buf, sizeof(json_buf), JSON_FMT, counter);
 
-	err = golioth_stream_push_cb(client, "sensor",
-			GOLIOTH_CONTENT_FORMAT_APP_JSON,
-			json_buf, strlen(json_buf),
-			async_error_handler, NULL);
-	if (err) LOG_ERR("Failed to send sensor data to Golioth: %d", err);
-
-	/* Update slide values on Ostentus
-	 *  -values should be sent as strings
-	 *  -use the enum from app_work.h for slide key values
+	/* Two values were read for each sensor but we'll record only on form each
+	 * channel as it's unlikely the two readings will be substantially
+	 * different.
 	 */
-	snprintk(json_buf, 6, "%d", counter);
-	slide_set(UP_COUNTER, json_buf, strlen(json_buf));
-	snprintk(json_buf, 6, "%d", 255-counter);
-	slide_set(DN_COUNTER, json_buf, strlen(json_buf));
-
-	++counter;
+	push_adc_to_golioth(ch0_data.val1, ch1_data.val1);
 }
 
 void app_work_init(struct golioth_client* work_client) {
