@@ -5,7 +5,7 @@
  */
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(golioth_powermonitor, LOG_LEVEL_DBG);
 
 #include <modem/lte_lc.h>
 #include <net/golioth/system_client.h>
@@ -125,7 +125,7 @@ void main(void)
 {
 	int err;
 
-	LOG_DBG("Start Reference Design Template sample");
+	LOG_DBG("Start Power Monitor Reference Design");
 
 	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMAGE_VERSION);
 

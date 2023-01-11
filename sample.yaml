@@ -1,6 +1,6 @@
 sample:
-  description: Golioth Reference Design Template
-  name: rd_template
+  description: Golioth Power Monitor Reference Design
+  name: powermonitor
 common:
   harness: net
   platform_allow: >
