@@ -14,7 +14,8 @@ LOG_MODULE_REGISTER(app_state, LOG_LEVEL_DBG);
 #include "app_state.h"
 #include "app_work.h"
 
-#define DEVICE_STATE_FMT "{\"example_int0\":%d,\"example_int1\":%d}"
+#define DEVICE_STATE_FMT "{\"ontime_ch0\":%lld,\"ontime_ch1\":%lld}"
+#define DEVICE_DESIRED_FMT "{\"example_int0\":%d,\"example_int1\":%d}"
 
 uint32_t _example_int0 = 0;
 uint32_t _example_int1 = 1;
@@ -22,6 +23,8 @@ uint32_t _example_int1 = 1;
 static struct golioth_client *client;
 
 static K_SEM_DEFINE(update_actual, 0, 1);
+
+static struct ontime ot;
 
 static int async_handler(struct golioth_req_rsp *rsp)
 {
@@ -60,7 +63,7 @@ static void reset_desired_state(void) {
 void app_state_update_actual(void) {
 
 	char sbuf[strlen(DEVICE_STATE_FMT)+8]; /* small bit of extra space */
-	snprintk(sbuf, sizeof(sbuf), DEVICE_STATE_FMT, _example_int0, _example_int1);
+	snprintk(sbuf, sizeof(sbuf), DEVICE_STATE_FMT, ot.ch0, ot.ch1);
 
 	int err;
 	err = golioth_lightdb_set_cb(client, APP_STATE_ACTUAL_ENDP,
@@ -68,6 +71,21 @@ void app_state_update_actual(void) {
 			async_handler, NULL);
 	if (err) {
 		LOG_ERR("Unable to write to LightDB State: %d", err);
+	}
+}
+
+void app_state_observe(void) {
+	int err = golioth_lightdb_observe_cb(client, APP_STATE_DESIRED_ENDP,
+			GOLIOTH_CONTENT_FORMAT_APP_JSON, app_state_desired_handler, NULL);
+	if (err) {
+	   LOG_WRN("failed to observe lightdb path: %d", err);
+	}
+}
+
+void app_state_update_actual(void) {
+	get_ontime(&ot);
+	if (k_sem_take(&update_actual, K_NO_WAIT) == 0) {
+		k_work_submit(&update_actual_state_work);
 	}
 }
 

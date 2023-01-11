@@ -12,6 +12,9 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 #include <zephyr/drivers/sensor.h>
 #include <drivers/spi.h>
 
+#include "app_work.h"
+#include "app_state.h"
+
 #define SPI_OP	SPI_OP_MODE_MASTER | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_WORD_SET(8) | SPI_LINES_SINGLE
 const struct spi_dt_spec mcp3201_ch0 = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201_ch0), SPI_OP, 0);
 const struct spi_dt_spec mcp3201_ch1 = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201_ch1), SPI_OP, 0);
@@ -20,6 +23,11 @@ const struct spi_dt_spec mcp3201_ch1 = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201_ch1)
 #include "libostentus/libostentus.h"
 
 static struct golioth_client *client;
+
+static uint64_t _ontime_ch0 = 0;
+static uint64_t _ontime_ch1 = 0;
+static int64_t _laston_ch0 = -1;
+static int64_t _laston_ch1 = -1;
 
 /* Store two values for each ADC reading */
 struct mcp3201_data {
@@ -30,6 +38,11 @@ struct mcp3201_data {
 /* Formatting string for sending sensor JSON to Golioth */
 #define JSON_FMT	"{\"ch0\":%d,\"ch1\":%d}"
 #define ADC_ENDP	"sensor"
+
+void get_ontime(struct ontime *ot) {
+	ot->ch0 = _ontime_ch0;
+	ot->ch1 = _ontime_ch1;
+}
 
 /* Callback for LightDB Stream */
 static int async_error_handler(struct golioth_req_rsp *rsp) {
@@ -69,7 +82,7 @@ static int process_adc_reading(uint8_t buf_data[4], struct mcp3201_data *adc_dat
 	return 0;
 }
 
-static int get_adc_reading(struct spi_dt_spec* adc_channel, struct mcp3201_data *adc_data) {
+static int get_adc_reading(const struct spi_dt_spec* adc_channel, struct mcp3201_data *adc_data) {
 	int err;
 	static uint8_t my_buffer[4] = {0};
 	struct spi_buf my_spi_buffer[1];
@@ -114,6 +127,18 @@ static int push_adc_to_golioth(uint16_t ch0_data, uint16_t ch1_data) {
 	return 0;
 }
 
+static void update_ontime(uint16_t adc_value, uint64_t *ontime, int64_t *laston) {
+	if (adc_value == 0) {
+		*ontime = 0;
+		*laston = -1;
+	}
+	else {
+		int64_t ts = k_uptime_get();
+		*ontime += (*laston < 0) ? 1 : (ts - *laston);
+		*laston = ts;
+	}
+}
+
 /* This will be called by the main() loop */
 /* Do all of your work here! */
 void app_work_sensor_read(void) {
@@ -123,6 +148,11 @@ void app_work_sensor_read(void) {
 	get_adc_reading(&mcp3201_ch0, &ch0_data);
 	get_adc_reading(&mcp3201_ch1, &ch1_data);
 
+	/* Calculate the "On" time if readings are not zero */
+	update_ontime(ch0_data.val1, &_ontime_ch0, &_laston_ch0);
+	update_ontime(ch1_data.val1, &_ontime_ch1, &_laston_ch1);
+	LOG_DBG("Ontime:\t(ch0): %lld\t(ch1): %lld", _ontime_ch0, _ontime_ch1);
+
 	/* Send sensor data to Golioth */
 
 	/* Two values were read for each sensor but we'll record only on form each
@@ -130,6 +160,7 @@ void app_work_sensor_read(void) {
 	 * different.
 	 */
 	push_adc_to_golioth(ch0_data.val1, ch1_data.val1);
+	app_state_update_actual();
 }
 
 void app_work_init(struct golioth_client* work_client) {

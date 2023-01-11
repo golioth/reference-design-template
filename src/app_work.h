@@ -7,6 +7,12 @@
 #ifndef __APP_WORK_H__
 #define __APP_WORK_H__
 
+struct ontime {
+	uint64_t ch0;
+	uint64_t ch1;
+};
+
+void get_ontime(struct ontime *ot);
 void app_work_init(struct golioth_client* work_client);
 void app_work_sensor_read(void);
 
