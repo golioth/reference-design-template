@@ -12,6 +12,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include <zephyr/net/coap.h>
 #include "app_rpc.h"
 #include "app_settings.h"
+#include "app_state.h"
 #include "app_work.h"
 #include "dfu/app_dfu.h"
 
@@ -43,9 +44,11 @@ static void golioth_on_connect(struct golioth_client *client)
 	 **/
 	static int iteration = 0;
 	if (iteration > 0) {
+		LOG_INF("Registering observations with Golioth");
 		app_dfu_observe();
 		app_register_settings(client);
 		app_register_rpc(client);
+		app_state_observe();
 	}
 	++iteration;
 }
@@ -71,6 +74,9 @@ void main(void)
 	if (err) {
 		LOG_ERR("Unable to configure LED for Golioth Logo");
 	}
+
+	/* Initialize app state */
+	app_state_init(client);
 
 	/* Initialize app work */
 	app_work_init(client);
