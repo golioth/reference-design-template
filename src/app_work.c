@@ -69,6 +69,33 @@ static int process_adc_reading(uint8_t buf_data[4], struct mcp3201_data *adc_dat
 	return 0;
 }
 
+static int get_adc_reading(struct spi_dt_spec* adc_channel, struct mcp3201_data *adc_data) {
+	int err;
+	static uint8_t my_buffer[4] = {0};
+	struct spi_buf my_spi_buffer[1];
+	my_spi_buffer[0].buf = my_buffer;
+	my_spi_buffer[0].len = 4;
+	const struct spi_buf_set rx_buff = { my_spi_buffer, 1 };
+
+	err = spi_read_dt(adc_channel, &rx_buff);
+	if (err) {
+		LOG_INF("spi_read status: %d", err);
+		return err;
+	}
+	LOG_DBG("Received 4 bytes: %d %d %d %d",
+			my_buffer[0],my_buffer[1],my_buffer[2], my_buffer[3]);
+
+	err = process_adc_reading(my_buffer, adc_data);
+	if (err == 0) {
+		LOG_INF("mcp3201_ch%d received two ADC readings: 0x%04x\t0x%04x",
+				adc_channel == &mcp3201_ch0 ? 0 : 1,
+				adc_data->val1, adc_data->val2);
+		return err;
+	}
+
+	return 0;
+}
+
 static int push_adc_to_golioth(uint16_t ch0_data, uint16_t ch1_data) {
 	int err;
 	char json_buf[30];
@@ -93,33 +120,8 @@ void app_work_sensor_read(void) {
 	int err;
 	struct mcp3201_data ch0_data, ch1_data;
 
-	static int8_t my_buffer[4] = {0};
-	struct spi_buf my_spi_buffer[1];
-	my_spi_buffer[0].buf = my_buffer;
-	my_spi_buffer[0].len = 4;
-	const struct spi_buf_set rx_buff = { my_spi_buffer, 1 };
-
-	err = spi_read_dt(&mcp3201_ch0, &rx_buff);
-	if (err) { LOG_INF("spi_read status: %d", err); }
-	LOG_DBG("Received 4 bytes: %d %d %d %d",
-			my_buffer[0],my_buffer[1],my_buffer[2], my_buffer[3]);
-
-	err = process_adc_reading(my_buffer, &ch0_data);
-	if (err == 0) {
-		LOG_INF("MCP3201_ch0 received two ADC readings: 0x%04x\t0x%04x",
-				ch0_data.val1, ch0_data.val2);
-	}
-
-	err = spi_read_dt(&mcp3201_ch1, &rx_buff);
-	if (err) { LOG_INF("spi_read status: %d", err); }
-	LOG_DBG("Received 4 bytes: %d %d %d %d",
-			my_buffer[0],my_buffer[1],my_buffer[2], my_buffer[3]);
-
-	err = process_adc_reading(my_buffer, &ch1_data);
-	if (err == 0) {
-		LOG_INF("MCP3201_ch1 received two ADC readings: 0x%04x\t0x%04x",
-				adc_data.val1, adc_data.val2);
-	}
+	get_adc_reading(&mcp3201_ch0, &ch0_data);
+	get_adc_reading(&mcp3201_ch1, &ch1_data);
 
 	/* Send sensor data to Golioth */
 
