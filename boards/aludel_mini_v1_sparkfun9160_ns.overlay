@@ -1,0 +1,14 @@
+&spi2 {
+	mcp3201_ch0: mcp3201@0 {
+		compatible = "vnd,spi-device";
+		reg = <0>;
+		spi-max-frequency = <1600000>;
+		label = "mcp3201_ch0";
+	};
+	mcp3201_ch1: mcp3201@1 {
+		compatible = "vnd,spi-device";
+		reg = <1>;
+		spi-max-frequency = <1600000>;
+		label = "mcp3201_ch1";
+	};
+};
