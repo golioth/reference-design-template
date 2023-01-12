@@ -16,18 +16,44 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 #include "app_state.h"
 
 #define SPI_OP	SPI_OP_MODE_MASTER | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_WORD_SET(8) | SPI_LINES_SINGLE
-const struct spi_dt_spec mcp3201_ch0 = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201_ch0), SPI_OP, 0);
-const struct spi_dt_spec mcp3201_ch1 = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201_ch1), SPI_OP, 0);
 
 #include "app_work.h"
 #include "libostentus/libostentus.h"
 
 static struct golioth_client *client;
 
-static uint64_t _ontime_ch0 = 0;
-static uint64_t _ontime_ch1 = 0;
-static int64_t _laston_ch0 = -1;
-static int64_t _laston_ch1 = -1;
+typedef struct {
+	const struct spi_dt_spec i2c;
+	uint8_t ch_num;
+	int64_t laston;
+	uint64_t runtime;
+	uint64_t total_unreported;
+	uint64_t total_cloud;
+	bool loaded_from_cloud;
+} adc_node_t;
+
+adc_node_t adc_ch0 = {
+	.i2c = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201_ch0), SPI_OP, 0),
+	.ch_num = 0,
+	.laston = -1,
+	.runtime = 0,
+	.total_unreported = 0,
+	.total_cloud = 0,
+	.loaded_from_cloud = false
+};
+
+adc_node_t adc_ch1 = {
+	.i2c = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201_ch1), SPI_OP, 0),
+	.ch_num = 1,
+	.laston = -1,
+	.runtime = 0,
+	.total_unreported = 0,
+	.total_cloud = 0,
+	.loaded_from_cloud = false
+};
+
+static K_SEM_DEFINE(ch0_sem, 0, 1);
+static K_SEM_DEFINE(ch1_sem, 0, 1);
 
 /* Store two values for each ADC reading */
 struct mcp3201_data {
@@ -40,8 +66,8 @@ struct mcp3201_data {
 #define ADC_ENDP	"sensor"
 
 void get_ontime(struct ontime *ot) {
-	ot->ch0 = _ontime_ch0;
-	ot->ch1 = _ontime_ch1;
+	ot->ch0 = adc_ch0.runtime;
+	ot->ch1 = adc_ch1.runtime;
 }
 
 /* Callback for LightDB Stream */
@@ -82,7 +108,7 @@ static int process_adc_reading(uint8_t buf_data[4], struct mcp3201_data *adc_dat
 	return 0;
 }
 
-static int get_adc_reading(const struct spi_dt_spec* adc_channel, struct mcp3201_data *adc_data) {
+static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 	int err;
 	static uint8_t my_buffer[4] = {0};
 	struct spi_buf my_spi_buffer[1];
@@ -90,7 +116,7 @@ static int get_adc_reading(const struct spi_dt_spec* adc_channel, struct mcp3201
 	my_spi_buffer[0].len = 4;
 	const struct spi_buf_set rx_buff = { my_spi_buffer, 1 };
 
-	err = spi_read_dt(adc_channel, &rx_buff);
+	err = spi_read_dt(&(adc->i2c), &rx_buff);
 	if (err) {
 		LOG_INF("spi_read status: %d", err);
 		return err;
@@ -101,7 +127,7 @@ static int get_adc_reading(const struct spi_dt_spec* adc_channel, struct mcp3201
 	err = process_adc_reading(my_buffer, adc_data);
 	if (err == 0) {
 		LOG_INF("mcp3201_ch%d received two ADC readings: 0x%04x\t0x%04x",
-				adc_channel == &mcp3201_ch0 ? 0 : 1,
+				adc->ch_num,
 				adc_data->val1, adc_data->val2);
 		return err;
 	}
@@ -127,15 +153,21 @@ static int push_adc_to_golioth(uint16_t ch0_data, uint16_t ch1_data) {
 	return 0;
 }
 
-static void update_ontime(uint16_t adc_value, uint64_t *ontime, int64_t *laston) {
+static void update_ontime(uint16_t adc_value, adc_node_t *ch) {
 	if (adc_value == 0) {
-		*ontime = 0;
-		*laston = -1;
+		ch->runtime = 0;
+		ch->laston = -1;
 	}
 	else {
 		int64_t ts = k_uptime_get();
-		*ontime += (*laston < 0) ? 1 : (ts - *laston);
-		*laston = ts;
+		int64_t duration = ts - ch->laston;
+		ch->runtime += (ch->laston < 0) ? 1 : duration;
+		ch->laston = ts;
+
+// 		if (k_sem_take(&ch0_sem, K_MSEC(300)) == 0) {
+// 			*cumulative += duration;
+// 			k_sem_give(&ch0_sem);
+// 		}
 	}
 }
 
@@ -145,13 +177,13 @@ void app_work_sensor_read(void) {
 	int err;
 	struct mcp3201_data ch0_data, ch1_data;
 
-	get_adc_reading(&mcp3201_ch0, &ch0_data);
-	get_adc_reading(&mcp3201_ch1, &ch1_data);
+	get_adc_reading(&adc_ch0, &ch0_data);
+	get_adc_reading(&adc_ch1, &ch1_data);
 
 	/* Calculate the "On" time if readings are not zero */
-	update_ontime(ch0_data.val1, &_ontime_ch0, &_laston_ch0);
-	update_ontime(ch1_data.val1, &_ontime_ch1, &_laston_ch1);
-	LOG_DBG("Ontime:\t(ch0): %lld\t(ch1): %lld", _ontime_ch0, _ontime_ch1);
+	update_ontime(ch0_data.val1, &adc_ch0);
+	update_ontime(ch1_data.val1, &adc_ch1);
+	LOG_DBG("Ontime:\t(ch0): %lld\t(ch1): %lld", adc_ch0.runtime, adc_ch1.runtime);
 
 	/* Send sensor data to Golioth */
 
@@ -167,12 +199,14 @@ void app_work_init(struct golioth_client* work_client) {
 	client = work_client;
 
 	LOG_DBG("Setting up current clamp ADCs...");
-	LOG_DBG("mcp3201_ch0.bus = %p", mcp3201_ch0.bus);
-	LOG_DBG("mcp3201_ch0.config.cs->gpio.port = %p", mcp3201_ch0.config.cs->gpio.port);
-	LOG_DBG("mcp3201_ch0.config.cs->gpio.pin = %u", mcp3201_ch0.config.cs->gpio.pin);
-	LOG_DBG("mcp3201_ch1.bus = %p", mcp3201_ch1.bus);
-	LOG_DBG("mcp3201_ch1.config.cs->gpio.port = %p", mcp3201_ch1.config.cs->gpio.port);
-	LOG_DBG("mcp3201_ch1.config.cs->gpio.pin = %u", mcp3201_ch1.config.cs->gpio.pin);
+	LOG_DBG("mcp3201_ch0.bus = %p", adc_ch0.i2c.bus);
+	LOG_DBG("mcp3201_ch0.config.cs->gpio.port = %p", adc_ch0.i2c.config.cs->gpio.port);
+	LOG_DBG("mcp3201_ch0.config.cs->gpio.pin = %u", adc_ch0.i2c.config.cs->gpio.pin);
+	LOG_DBG("mcp3201_ch1.bus = %p", adc_ch1.i2c.bus);
+	LOG_DBG("mcp3201_ch1.config.cs->gpio.port = %p", adc_ch1.i2c.config.cs->gpio.port);
+	LOG_DBG("mcp3201_ch1.config.cs->gpio.pin = %u", adc_ch1.i2c.config.cs->gpio.pin);
 
+	k_sem_give(&ch0_sem);
+	k_sem_give(&ch1_sem);
 }
 
