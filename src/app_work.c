@@ -7,6 +7,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 
+#include <stdlib.h>
 #include <net/golioth/system_client.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/sensor.h>
@@ -22,19 +23,18 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 
 static struct golioth_client *client;
 
-typedef struct {
-	const struct spi_dt_spec i2c;
-	uint8_t ch_num;
-	int64_t laston;
-	uint64_t runtime;
-	uint64_t total_unreported;
-	uint64_t total_cloud;
-	bool loaded_from_cloud;
-} adc_node_t;
+struct k_sem adc_data_sem;
+
+/* Formatting string for sending sensor JSON to Golioth */
+#define JSON_FMT	"{\"ch0\":%d,\"ch1\":%d}"
+#define ADC_ENDP	"sensor"
+
+#define ADC_CH0		0
+#define ADC_CH1		1
 
 adc_node_t adc_ch0 = {
 	.i2c = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201_ch0), SPI_OP, 0),
-	.ch_num = 0,
+	.ch_num = ADC_CH0,
 	.laston = -1,
 	.runtime = 0,
 	.total_unreported = 0,
@@ -44,7 +44,7 @@ adc_node_t adc_ch0 = {
 
 adc_node_t adc_ch1 = {
 	.i2c = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201_ch1), SPI_OP, 0),
-	.ch_num = 1,
+	.ch_num = ADC_CH1,
 	.laston = -1,
 	.runtime = 0,
 	.total_unreported = 0,
@@ -52,18 +52,11 @@ adc_node_t adc_ch1 = {
 	.loaded_from_cloud = false
 };
 
-static K_SEM_DEFINE(ch0_sem, 0, 1);
-static K_SEM_DEFINE(ch1_sem, 0, 1);
-
 /* Store two values for each ADC reading */
 struct mcp3201_data {
 	uint16_t val1;
 	uint16_t val2;
 };
-
-/* Formatting string for sending sensor JSON to Golioth */
-#define JSON_FMT	"{\"ch0\":%d,\"ch1\":%d}"
-#define ADC_ENDP	"sensor"
 
 void get_ontime(struct ontime *ot) {
 	ot->ch0 = adc_ch0.runtime;
@@ -137,9 +130,15 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 
 static int push_adc_to_golioth(uint16_t ch0_data, uint16_t ch1_data) {
 	int err;
-	char json_buf[30];
+	char json_buf[128];
 
-	snprintk(json_buf, sizeof(json_buf), JSON_FMT, ch0_data, ch1_data);
+	snprintk(
+			json_buf,
+			sizeof(json_buf),
+			JSON_FMT,
+			ch0_data,
+			ch1_data
+			);
 
 	err = golioth_stream_push_cb(client, ADC_ENDP,
 			GOLIOTH_CONTENT_FORMAT_APP_JSON, json_buf, strlen(json_buf),
@@ -150,24 +149,29 @@ static int push_adc_to_golioth(uint16_t ch0_data, uint16_t ch1_data) {
 		return err;
 	}
 
+	app_state_report_ontime(&adc_ch0, &adc_ch1);
+
 	return 0;
 }
 
-static void update_ontime(uint16_t adc_value, adc_node_t *ch) {
-	if (adc_value == 0) {
-		ch->runtime = 0;
-		ch->laston = -1;
+static int update_ontime(uint16_t adc_value, adc_node_t *ch) {
+	if (k_sem_take(&adc_data_sem, K_MSEC(300)) == 0) {
+		if (adc_value == 0) {
+			ch->runtime = 0;
+			ch->laston = -1;
+		}
+		else {
+			int64_t ts = k_uptime_get();
+			int64_t duration = ts - ch->laston;
+			ch->runtime += (ch->laston < 0) ? 1 : duration;
+			ch->laston = ts;
+			ch->total_unreported += duration;
+		}
+		k_sem_give(&adc_data_sem);
+		return 0;
 	}
 	else {
-		int64_t ts = k_uptime_get();
-		int64_t duration = ts - ch->laston;
-		ch->runtime += (ch->laston < 0) ? 1 : duration;
-		ch->laston = ts;
-
-// 		if (k_sem_take(&ch0_sem, K_MSEC(300)) == 0) {
-// 			*cumulative += duration;
-// 			k_sem_give(&ch0_sem);
-// 		}
+		return -EACCES;
 	}
 }
 
@@ -181,8 +185,14 @@ void app_work_sensor_read(void) {
 	get_adc_reading(&adc_ch1, &ch1_data);
 
 	/* Calculate the "On" time if readings are not zero */
-	update_ontime(ch0_data.val1, &adc_ch0);
-	update_ontime(ch1_data.val1, &adc_ch1);
+	err = update_ontime(ch0_data.val1, &adc_ch0);
+	if (err) {
+		LOG_ERR("Failed up update ontime: %d", err);
+	}
+	err = update_ontime(ch1_data.val1, &adc_ch1);
+	if (err) {
+		LOG_ERR("Failed up update ontime: %d", err);
+	}
 	LOG_DBG("Ontime:\t(ch0): %lld\t(ch1): %lld", adc_ch0.runtime, adc_ch1.runtime);
 
 	/* Send sensor data to Golioth */
@@ -195,8 +205,63 @@ void app_work_sensor_read(void) {
 	app_state_update_actual();
 }
 
+static int get_cumulative_handler(struct golioth_req_rsp *rsp)
+{
+	if (rsp->err) {
+		LOG_ERR("Failed to receive cumulative value: %d", rsp->err);
+		return rsp->err;
+	}
+
+	LOG_HEXDUMP_INF(rsp->data, rsp->len, "Counter (async)");
+
+	adc_node_t *ch;
+	if ((uint32_t)rsp->user_data == ADC_CH0) {
+		ch = &adc_ch0;
+	}
+	else {
+		ch = &adc_ch1;
+	}
+	
+	if (k_sem_take(&adc_data_sem, K_MSEC(300)) == 0) {
+		if (strncmp(rsp->data, "null", 4) == 0) {
+			/* Allow writes to the cloud as there is no starting value at this
+			 * endpoint
+			 */
+			ch->loaded_from_cloud = true;
+		}
+		else {
+			char value_str[rsp->len+1];
+			memcpy(value_str, rsp->data, rsp->len);
+			value_str[sizeof(value_str)-1] = '\0';
+			ch->total_cloud = strtol(rsp->data, NULL, 10);
+			ch->loaded_from_cloud = true;
+		}
+		k_sem_give(&adc_data_sem);
+	}
+	return 0;
+}
+
+void app_work_on_connect(void) {
+	/* Get cumulative "on" time from Golioth LightDB State */
+	int err;
+	err = golioth_lightdb_get_cb(client, "state/cumulative_ch0",
+				     GOLIOTH_CONTENT_FORMAT_APP_JSON,
+				     get_cumulative_handler, (void *)ADC_CH0);
+	if (err) {
+		LOG_WRN("failed to get cumulative channel0 data from LightDB: %d", err);
+	}
+	err = golioth_lightdb_get_cb(client, "state/cumulative_ch1",
+				     GOLIOTH_CONTENT_FORMAT_APP_JSON,
+				     get_cumulative_handler, (void *)ADC_CH1);
+	if (err) {
+		LOG_WRN("failed to get cumulative channel1 data from LightDB: %d", err);
+	}
+}
+
 void app_work_init(struct golioth_client* work_client) {
 	client = work_client;
+	k_sem_init(&adc_data_sem, 0, 1);
+
 
 	LOG_DBG("Setting up current clamp ADCs...");
 	LOG_DBG("mcp3201_ch0.bus = %p", adc_ch0.i2c.bus);
@@ -206,7 +271,7 @@ void app_work_init(struct golioth_client* work_client) {
 	LOG_DBG("mcp3201_ch1.config.cs->gpio.port = %p", adc_ch1.i2c.config.cs->gpio.port);
 	LOG_DBG("mcp3201_ch1.config.cs->gpio.pin = %u", adc_ch1.i2c.config.cs->gpio.pin);
 
-	k_sem_give(&ch0_sem);
-	k_sem_give(&ch1_sem);
+	/* Semaphores to handle data access */
+	k_sem_give(&adc_data_sem);
 }
 

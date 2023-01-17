@@ -14,7 +14,10 @@ LOG_MODULE_REGISTER(app_state, LOG_LEVEL_DBG);
 #include "app_state.h"
 #include "app_work.h"
 
-#define DEVICE_STATE_FMT "{\"ontime_ch0\":%lld,\"ontime_ch1\":%lld}"
+#define LIVE_RUNTIME_FMT "{\"live_runtime\":{\"ch0\":%lld,\"ch1\":%lld}"
+#define CUMULATIVE_RUNTIME_FMT ",\"cumulative\":{\"ch0\":%lld,\"ch1\":%lld}}"
+#define DEVICE_STATE_FMT LIVE_RUNTIME_FMT "}"
+#define DEVICE_STATE_FMT_CUMULATIVE LIVE_RUNTIME_FMT CUMULATIVE_RUNTIME_FMT
 #define DEVICE_DESIRED_FMT "{\"example_int0\":%d,\"example_int1\":%d}"
 
 uint32_t _example_int0 = 0;
@@ -87,6 +90,54 @@ void app_state_update_actual(void) {
 	if (k_sem_take(&update_actual, K_NO_WAIT) == 0) {
 		k_work_submit(&update_actual_state_work);
 	}
+}
+
+int app_state_report_ontime(adc_node_t* ch0, adc_node_t* ch1) {
+	int err;
+	char json_buf[128];
+
+	if (k_sem_take(&adc_data_sem, K_MSEC(300)) == 0) {
+
+		if (ch0->loaded_from_cloud) {
+			snprintk(
+					json_buf,
+					sizeof(json_buf),
+					DEVICE_STATE_FMT_CUMULATIVE,
+					ch0->runtime,
+					ch1->runtime,
+					ch0->total_cloud + ch0->total_unreported,
+					ch1->total_cloud + ch1->total_unreported
+					);
+		} else {
+			snprintk(
+					json_buf,
+					sizeof(json_buf),
+					DEVICE_STATE_FMT,
+					ch0->runtime,
+					ch1->runtime
+					);
+		}
+
+		err = golioth_lightdb_set_cb(client, APP_STATE_ACTUAL_ENDP,
+				GOLIOTH_CONTENT_FORMAT_APP_JSON, json_buf, strlen(json_buf),
+				async_handler, NULL);
+
+		if (err) {
+			LOG_ERR("Failed to send sensor data to Golioth: %d", err);
+			k_sem_give(&adc_data_sem);
+			return err;
+		} else {
+			if (ch0->loaded_from_cloud) {
+				ch0->total_cloud += ch0->total_unreported;
+				ch0->total_unreported = 0;
+				ch1->total_cloud += ch1->total_unreported;
+				ch1->total_unreported = 0;
+			}
+		}
+		k_sem_give(&adc_data_sem);
+	}
+
+	return 0;
 }
 
 int app_state_desired_handler(struct golioth_req_rsp *rsp) {
