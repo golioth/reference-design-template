@@ -202,7 +202,6 @@ void app_work_sensor_read(void) {
 	 * different.
 	 */
 	push_adc_to_golioth(ch0_data.val1, ch1_data.val1);
-	app_state_update_actual();
 }
 
 static int get_cumulative_handler(struct golioth_req_rsp *rsp)
