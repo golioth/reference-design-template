@@ -30,6 +30,7 @@ typedef struct {
 } adc_node_t;
 
 void get_ontime(struct ontime *ot);
+int reset_cumulative_totals(void);
 void app_work_init(struct golioth_client* work_client);
 void app_work_on_connect(void);
 void app_work_sensor_read(void);
