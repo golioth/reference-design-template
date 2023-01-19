@@ -109,6 +109,9 @@ int app_state_report_ontime(adc_node_t* ch0, adc_node_t* ch1) {
 					ch0->runtime,
 					ch1->runtime
 					);
+			/* Cumulative not yet loaded from LightDB State */
+			/* Try to load it now */
+			app_work_on_connect();
 		}
 
 		err = golioth_lightdb_set_cb(client, APP_STATE_ACTUAL_ENDP,

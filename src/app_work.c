@@ -15,6 +15,9 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 
 #include "app_work.h"
 #include "app_state.h"
+#include <qcbor/qcbor.h>
+#include <qcbor/qcbor_decode.h>
+#include <qcbor/qcbor_spiffy_decode.h>
 
 #define SPI_OP	SPI_OP_MODE_MASTER | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_WORD_SET(8) | SPI_LINES_SINGLE
 
@@ -26,11 +29,12 @@ static struct golioth_client *client;
 struct k_sem adc_data_sem;
 
 /* Formatting string for sending sensor JSON to Golioth */
-#define JSON_FMT	"{\"ch0\":%d,\"ch1\":%d}"
-#define ADC_ENDP	"sensor"
+#define JSON_FMT "{\"ch0\":%d,\"ch1\":%d}"
+#define ADC_STREAM_ENDP	"sensor"
+#define ADC_CUMULATIVE_ENDP	"state/cumulative"
 
-#define ADC_CH0		0
-#define ADC_CH1		1
+#define ADC_CH0 0
+#define ADC_CH1 1
 
 adc_node_t adc_ch0 = {
 	.i2c = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201_ch0), SPI_OP, 0),
@@ -140,7 +144,7 @@ static int push_adc_to_golioth(uint16_t ch0_data, uint16_t ch1_data) {
 			ch1_data
 			);
 
-	err = golioth_stream_push_cb(client, ADC_ENDP,
+	err = golioth_stream_push_cb(client, ADC_STREAM_ENDP,
 			GOLIOTH_CONTENT_FORMAT_APP_JSON, json_buf, strlen(json_buf),
 			async_error_handler, NULL);
 
@@ -211,35 +215,43 @@ void app_work_sensor_read(void) {
 
 static int get_cumulative_handler(struct golioth_req_rsp *rsp)
 {
+	int err;
+	uint64_t decoded_ch0, decoded_ch1;
+
 	if (rsp->err) {
 		LOG_ERR("Failed to receive cumulative value: %d", rsp->err);
 		return rsp->err;
 	}
 
-	LOG_HEXDUMP_INF(rsp->data, rsp->len, "Counter (async)");
+	LOG_HEXDUMP_DBG(rsp->data, rsp->len, ADC_CUMULATIVE_ENDP);
 
-	adc_node_t *ch;
-	if ((uint32_t)rsp->user_data == ADC_CH0) {
-		ch = &adc_ch0;
+	QCBORDecodeContext decode_ctx;
+	UsefulBufC payload = { rsp->data, rsp->len };
+
+	QCBORDecode_Init(&decode_ctx, payload, QCBOR_DECODE_MODE_NORMAL);
+	QCBORDecode_EnterMap(&decode_ctx, NULL);
+	QCBORDecode_GetUInt64InMapSZ(&decode_ctx, "ch0", &decoded_ch0);
+	QCBORDecode_GetUInt64InMapSZ(&decode_ctx, "ch1", &decoded_ch1);
+	QCBORDecode_ExitMap(&decode_ctx);
+	err = QCBORDecode_Finish(&decode_ctx);
+	if (err) {
+		LOG_ERR("QCBOR decode error: %d", err);
+		decoded_ch0 = 0;
+		decoded_ch1 = 0;
+	} else {
+		LOG_DBG("Decoded: ch0: %lld, ch1: %lld", decoded_ch0, decoded_ch1);
 	}
-	else {
-		ch = &adc_ch1;
-	}
-	
+
 	if (k_sem_take(&adc_data_sem, K_MSEC(300)) == 0) {
-		if (strncmp(rsp->data, "null", 4) == 0) {
-			/* Allow writes to the cloud as there is no starting value at this
-			 * endpoint
-			 */
-			ch->loaded_from_cloud = true;
-		}
-		else {
-			char value_str[rsp->len+1];
-			memcpy(value_str, rsp->data, rsp->len);
-			value_str[sizeof(value_str)-1] = '\0';
-			ch->total_cloud = strtol(rsp->data, NULL, 10);
-			ch->loaded_from_cloud = true;
-		}
+		adc_ch0.total_cloud = decoded_ch0;
+		adc_ch1.total_cloud = decoded_ch1;
+		adc_ch0.loaded_from_cloud = true;
+		adc_ch1.loaded_from_cloud = true;
+
+		LOG_DBG("CH0: %lld, %d\tCH1: %lld, %d", adc_ch0.total_cloud,
+				adc_ch0.loaded_from_cloud,adc_ch1.total_cloud,
+				adc_ch1.loaded_from_cloud);
+
 		k_sem_give(&adc_data_sem);
 	}
 	return 0;
@@ -248,17 +260,11 @@ static int get_cumulative_handler(struct golioth_req_rsp *rsp)
 void app_work_on_connect(void) {
 	/* Get cumulative "on" time from Golioth LightDB State */
 	int err;
-	err = golioth_lightdb_get_cb(client, "state/cumulative_ch0",
-				     GOLIOTH_CONTENT_FORMAT_APP_JSON,
-				     get_cumulative_handler, (void *)ADC_CH0);
+	err = golioth_lightdb_get_cb(client, ADC_CUMULATIVE_ENDP,
+				     GOLIOTH_CONTENT_FORMAT_APP_CBOR,
+				     get_cumulative_handler, NULL);
 	if (err) {
-		LOG_WRN("failed to get cumulative channel0 data from LightDB: %d", err);
-	}
-	err = golioth_lightdb_get_cb(client, "state/cumulative_ch1",
-				     GOLIOTH_CONTENT_FORMAT_APP_JSON,
-				     get_cumulative_handler, (void *)ADC_CH1);
-	if (err) {
-		LOG_WRN("failed to get cumulative channel1 data from LightDB: %d", err);
+		LOG_WRN("failed to get cumulative channel data from LightDB: %d", err);
 	}
 }
 
