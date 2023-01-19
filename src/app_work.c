@@ -162,8 +162,13 @@ static int update_ontime(uint16_t adc_value, adc_node_t *ch) {
 		}
 		else {
 			int64_t ts = k_uptime_get();
-			int64_t duration = ts - ch->laston;
-			ch->runtime += (ch->laston < 0) ? 1 : duration;
+			int64_t duration;
+			if (ch->laston > 0) {
+				duration = ts - ch->laston;
+			} else {
+				duration = 1;
+			}
+			ch->runtime += duration;
 			ch->laston = ts;
 			ch->total_unreported += duration;
 		}
