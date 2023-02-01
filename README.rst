@@ -6,8 +6,8 @@ Overview
 
 Use this repo as a template when beginning work on a new Golioth Reference
 Design. It is set up as a standalone repository, with all Golioth features
-implemented in basic form. Search the project for the word `template` and
-`rd_template` and update those occurrences with your reference design's name.
+implemented in basic form. Search the project for the word ``template`` and
+``rd_template`` and update those occurrences with your reference design's name.
 
 Local set up
 ************
@@ -26,7 +26,7 @@ Install the Python virtual environment (recommended)
    source golioth-reference-design-template/.venv/bin/activate
    pip install wheel west
 
-Use west to initialize and install
+Use ``west`` to initialize and install
 ==================================
 
 .. code-block:: console
@@ -37,23 +37,22 @@ Use west to initialize and install
    west zephyr-export
    pip install -r deps/zephyr/scripts/requirements.txt
 
-This will also install the
-[golioth-zephyr-boards](https://github.com/golioth/golioth-zephyr-boards)
-definitions for the Golioth Aludel-Mini.
+This will also install the `golioth-zephyr-boards`_ definitions for the Golioth
+Aludel-Mini.
 
 Building the application
 ************************
 
 Build Zephyr sample application for Golioth Aludel-Mini
-(aludel_mini_v1_sparkfun9160_ns) from the top level of your project. After a
-successful build you will see a new `build` directory. Note that any changes
-(and git commmits) to the project itself will be inside the `app` folder. The
-`build` and `deps` directories being one level higher prevents the repo from
-cataloging all of the changes to the dependencies and the build (so no .gitignor
-is needed)
+(``aludel_mini_v1_sparkfun9160_ns``) from the top level of your project. After a
+successful build you will see a new ``build`` directory. Note that any changes
+(and git commmits) to the project itself will be inside the ``app`` folder. The
+``build`` and ``deps`` directories being one level higher prevents the repo from
+cataloging all of the changes to the dependencies and the build (so no
+``.gitignore`` is needed)
 
-During building Replace <your.semantic.version> to utilize the DFU functionality
-on this Reference Design.
+During building, replace ``<your.semantic.version>`` to utilize the DFU
+functionality on this Reference Design.
 
 .. code-block:: console
 
@@ -78,3 +77,4 @@ messages, set a ``LOOP_DELAY_S`` key with a interger value (seconds) in the
 Device Settings menu of the `Golioth Console`_.
 
 .. _Golioth Console: https://console.golioth.io
+.. _golioth-zephyr-boards: https://github.com/golioth/golioth-zephyr-boards
