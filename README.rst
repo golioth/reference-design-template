@@ -27,7 +27,7 @@ Install the Python virtual environment (recommended)
    pip install wheel west
 
 Use ``west`` to initialize and install
-==================================
+======================================
 
 .. code-block:: console
 
