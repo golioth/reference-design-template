@@ -15,6 +15,7 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 
 #include "app_work.h"
 #include "app_state.h"
+#include "app_settings.h"
 #include <qcbor/qcbor.h>
 #include <qcbor/qcbor_decode.h>
 #include <qcbor/qcbor_spiffy_decode.h>
@@ -160,7 +161,7 @@ static int push_adc_to_golioth(uint16_t ch0_data, uint16_t ch1_data) {
 
 static int update_ontime(uint16_t adc_value, adc_node_t *ch) {
 	if (k_sem_take(&adc_data_sem, K_MSEC(300)) == 0) {
-		if (adc_value == 0) {
+		if (adc_value <= get_adc_floor(ch->ch_num)) {
 			ch->runtime = 0;
 			ch->laston = -1;
 		}
