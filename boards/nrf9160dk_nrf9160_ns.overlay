@@ -1,0 +1,7 @@
+/ {
+    aliases {
+        click-uart = &uart2;
+        click-i2c = &i2c1;
+        golioth-led = &led0;
+    };
+};
