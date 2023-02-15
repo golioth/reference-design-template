@@ -26,9 +26,9 @@ static int async_error_handler(struct golioth_req_rsp *rsp) {
 	return 0;
 }
 
-/* Work handler will be called from main via app_work_submit() */
+/* This will be called by the main() loop */
 /* Do all of your work here! */
-static void sensor_work_handler(struct k_work *work) {
+void app_work_sensor_reading(void) {
 	int err;
 	char json_buf[256];
 
@@ -54,13 +54,8 @@ static void sensor_work_handler(struct k_work *work) {
 
 	++counter;
 }
-K_WORK_DEFINE(sensor_work, sensor_work_handler);
 
 void app_work_init(struct golioth_client* work_client) {
 	client = work_client;
 }
 
-void app_work_submit(void) {
-	/* Pattern for submitting some sensor work to the system work queue */
-	k_work_submit(&sensor_work);
-}
