@@ -38,7 +38,6 @@ static int async_handler(struct golioth_req_rsp *rsp)
 
 void app_state_init(struct golioth_client* state_client) {
 	client = state_client;
-	app_state_update_actual();
 	k_sem_give(&reset_desired);
 	k_sem_give(&update_actual);
 }
@@ -59,7 +58,7 @@ static void reset_desired_work_handler(struct k_work *work) {
 
 K_WORK_DEFINE(reset_desired_work, reset_desired_work_handler);
 
-static void update_actual_state_work_handler(struct k_work *work) {
+void app_state_update_actual(void) {
 
 	char sbuf[strlen(DEVICE_STATE_FMT)+8]; /* small bit of extra space */
 	snprintk(sbuf, sizeof(sbuf), DEVICE_STATE_FMT, _example_int0, _example_int1);
@@ -71,10 +70,7 @@ static void update_actual_state_work_handler(struct k_work *work) {
 	if (err) {
 		LOG_ERR("Unable to write to LightDB State: %d", err);
 	}
-	k_sem_give(&update_actual);
 }
-
-K_WORK_DEFINE(update_actual_state_work, update_actual_state_work_handler);
 
 void app_state_observe(void) {
 	int err = golioth_lightdb_observe_cb(client, APP_STATE_DESIRED_ENDP,
@@ -83,14 +79,11 @@ void app_state_observe(void) {
 	   LOG_WRN("failed to observe lightdb path: %d", err);
 	}
 
-	// This will run when we first connect so update the actual state of the
-	// device with the Golioth servers.
-	app_state_update_actual();
-}
-
-void app_state_update_actual(void) {
+	// This will only run when we first connect. It updates the actual state of
+	// the device with the Golioth servers. Future updates will be sent whenever
+	// changes occur.
 	if (k_sem_take(&update_actual, K_NO_WAIT) == 0) {
-		k_work_submit(&update_actual_state_work);
+		app_state_update_actual();
 	}
 }
 
