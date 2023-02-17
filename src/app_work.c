@@ -28,7 +28,7 @@ static int async_error_handler(struct golioth_req_rsp *rsp) {
 
 /* This will be called by the main() loop */
 /* Do all of your work here! */
-void app_work_sensor_reading(void) {
+void app_work_sensor_read(void) {
 	int err;
 	char json_buf[256];
 
