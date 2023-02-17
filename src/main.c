@@ -113,7 +113,7 @@ void main(void)
 	gpio_add_callback(user_btn.port, &button_cb_data);
 
 	while (true) {
-		app_work_sensor_reading();
+		app_work_sensor_read();
 
 		k_sleep(K_SECONDS(get_loop_delay_s()));
 	}

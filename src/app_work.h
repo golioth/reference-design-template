@@ -8,6 +8,6 @@
 #define __APP_WORK_H__
 
 void app_work_init(struct golioth_client* work_client);
-void app_work_sensor_reading(void);
+void app_work_sensor_read(void);
 
 #endif /* __APP_WORK_H__ */
