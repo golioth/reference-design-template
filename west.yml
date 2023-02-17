@@ -28,7 +28,7 @@ manifest:
 
     - name: golioth-zephyr-boards
       path: app/golioth-boards
-      revision: 807f33254c1747e5d6ab13051efbc5c19f893551
+      revision: 6532ee0a5755bdcd4de95966f027427889443322
       url: git@github.com:golioth/golioth-zephyr-boards.git
   self:
     path: app
