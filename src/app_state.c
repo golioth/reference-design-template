@@ -40,7 +40,7 @@ void app_state_init(struct golioth_client* state_client) {
 	k_sem_give(&update_actual);
 }
 
-static void reset_desired_state() {
+static void reset_desired_state(void) {
 	LOG_INF("Resetting \"%s\" LightDB State endpoint to defaults.",
 			APP_STATE_DESIRED_ENDP
 			);
