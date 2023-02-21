@@ -7,6 +7,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 
+#include <modem/lte_lc.h>
 #include <net/golioth/system_client.h>
 #include <samples/common/net_connect.h>
 #include <zephyr/net/coap.h>
@@ -21,6 +22,8 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 
 K_SEM_DEFINE(connected, 0, 1);
+K_SEM_DEFINE(lte_connected, 0, 1);
+
 
 static k_tid_t _system_thread = 0;
 
@@ -43,6 +46,36 @@ static void golioth_on_connect(struct golioth_client *client)
 	app_register_settings(client);
 	app_register_rpc(client);
 	app_state_observe();
+}
+
+static void lte_handler(const struct lte_lc_evt *const evt)
+{
+	switch (evt->type) {
+	case LTE_LC_EVT_NW_REG_STATUS:
+		if ((evt->nw_reg_status != LTE_LC_NW_REG_REGISTERED_HOME) &&
+		 (evt->nw_reg_status != LTE_LC_NW_REG_REGISTERED_ROAMING)) {
+			break;
+		}
+
+		LOG_INF("Connected to LTE network");
+
+		k_sem_give(&lte_connected);
+		break;
+	case LTE_LC_EVT_PSM_UPDATE:
+	case LTE_LC_EVT_EDRX_UPDATE:
+	case LTE_LC_EVT_RRC_UPDATE:
+	case LTE_LC_EVT_CELL_UPDATE:
+	case LTE_LC_EVT_LTE_MODE_UPDATE:
+	case LTE_LC_EVT_TAU_PRE_WARNING:
+	case LTE_LC_EVT_NEIGHBOR_CELL_MEAS:
+	case LTE_LC_EVT_MODEM_SLEEP_EXIT_PRE_WARNING:
+	case LTE_LC_EVT_MODEM_SLEEP_EXIT:
+	case LTE_LC_EVT_MODEM_SLEEP_ENTER:
+		/* Callback events carrying LTE link data */
+		break;
+	 default:
+		break;
+	}
 }
 
 void button_pressed(const struct device *dev, struct gpio_callback *cb,
@@ -79,6 +112,19 @@ void main(void)
 	/* Run WiFi/DHCP if necessary */
 	if (IS_ENABLED(CONFIG_GOLIOTH_SAMPLES_COMMON)) {
 		net_connect();
+	}
+
+	if (IS_ENABLED(CONFIG_LTE_AUTO_INIT_AND_CONNECT)) {
+		LOG_INF("Device is using automatic LTE control");
+	} else if (IS_ENABLED(CONFIG_SOC_NRF9160)){
+		LOG_INF("Connecting to LTE network. This may take a few minutes...");
+		err = lte_lc_init_and_connect_async(lte_handler);
+		if (err) {
+			 printk("lte_lc_init_and_connect_async, error: %d\n", err);
+			 return;
+		}
+
+		k_sem_take(&lte_connected, K_FOREVER);
 	}
 
 	/* Start Golioth client */
