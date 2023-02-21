@@ -191,6 +191,10 @@ void main(void)
 	gpio_init_callback(&button_cb_data, button_pressed, BIT(user_btn.pin));
 	gpio_add_callback(user_btn.port, &button_cb_data);
 
+	slide_add(1, "Counter", strlen("Counter"));
+	slide_add(2, "Anti-counter", strlen("Anti-counter"));
+	slideshow(30000);
+
 	while (true) {
 		app_work_sensor_read();
 

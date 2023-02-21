@@ -11,6 +11,8 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/sensor.h>
 
+#include "libostentus/libostentus.h"
+
 static struct golioth_client *client;
 /* Add Sensor structs here */
 
@@ -33,7 +35,7 @@ void app_work_sensor_read(void) {
 	char json_buf[256];
 
 	/* For this demo, we just send Hello to Golioth */
-	static int counter = 0;
+	static uint8_t counter = 0;
 
 	LOG_INF("Sending hello! %d", counter);
 
@@ -51,6 +53,11 @@ void app_work_sensor_read(void) {
 			json_buf, strlen(json_buf),
 			async_error_handler, NULL);
 	if (err) LOG_ERR("Failed to send sensor data to Golioth: %d", err);
+
+	snprintk(json_buf, 6, "%d", counter);
+	slide_set(1, json_buf, strlen(json_buf));
+	snprintk(json_buf, 6, "%d", 255-counter);
+	slide_set(2, json_buf, strlen(json_buf));
 
 	++counter;
 }
