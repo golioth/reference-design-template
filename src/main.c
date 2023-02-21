@@ -22,8 +22,6 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 
 K_SEM_DEFINE(connected, 0, 1);
-K_SEM_DEFINE(lte_connected, 0, 1);
-
 
 static k_tid_t _system_thread = 0;
 
@@ -32,6 +30,10 @@ static const struct gpio_dt_spec golioth_led = GPIO_DT_SPEC_GET(
 static const struct gpio_dt_spec user_btn = GPIO_DT_SPEC_GET(
 		DT_ALIAS(sw1), gpios);
 static struct gpio_callback button_cb_data;
+
+/* forward declarations */
+void golioth_connection_led_set(uint8_t state);
+void network_led_set(uint8_t state);
 
 void wake_system_thread(void) {
 	k_wakeup(_system_thread);
@@ -46,6 +48,18 @@ static void golioth_on_connect(struct golioth_client *client)
 	app_register_settings(client);
 	app_register_rpc(client);
 	app_state_observe();
+
+	static bool initial_connection = true;
+	if (initial_connection) {
+		initial_connection = false;
+
+		/* Report current DFU version to Golioth */
+		//FIXME: we can't call this here because it's sync (deadlock)
+ 		//app_dfu_report_state_to_golioth();
+
+		/* Indicate connection using LEDs */
+		golioth_connection_led_set(1);
+	}
 }
 
 static void lte_handler(const struct lte_lc_evt *const evt)
@@ -58,8 +72,10 @@ static void lte_handler(const struct lte_lc_evt *const evt)
 		}
 
 		LOG_INF("Connected to LTE network");
+		network_led_set(1);
 
-		k_sem_give(&lte_connected);
+		golioth_system_client_start();
+
 		break;
 	case LTE_LC_EVT_PSM_UPDATE:
 	case LTE_LC_EVT_EDRX_UPDATE:
@@ -83,6 +99,19 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb,
 {
 	LOG_DBG("Button pressed at %d", k_cycle_get_32());
 	k_wakeup(_system_thread);
+}
+
+/* Set (unset) LED indicators for active Golioth connection */
+void golioth_connection_led_set(uint8_t state) {
+	uint8_t pin_state = state ? 1 : 0;
+	/* Turn on Golioth logo LED once connected */
+	gpio_pin_set_dt(&golioth_led, pin_state);
+}
+
+/* Set (unset) LED indicators for active internet connection */
+void network_led_set(uint8_t state) {
+	uint8_t pin_state = state ? 1 : 0;
+	/* TODO: Insert Ostentus code here */
 }
 
 void main(void)
@@ -109,6 +138,9 @@ void main(void)
 	/* Initialize DFU components */
 	app_dfu_init(client);
 
+	/* Register Golioth on_connect callback */
+	client->on_connect = golioth_on_connect;
+
 	/* Run WiFi/DHCP if necessary */
 	if (IS_ENABLED(CONFIG_GOLIOTH_SAMPLES_COMMON)) {
 		net_connect();
@@ -116,6 +148,12 @@ void main(void)
 
 	if (IS_ENABLED(CONFIG_LTE_AUTO_INIT_AND_CONNECT)) {
 		LOG_INF("Device is using automatic LTE control");
+		/* Start Golioth client */
+		golioth_system_client_start();
+
+		/* Block until connected to Golioth */
+		k_sem_take(&connected, K_FOREVER);
+
 	} else if (IS_ENABLED(CONFIG_SOC_NRF9160)){
 		LOG_INF("Connecting to LTE network. This may take a few minutes...");
 		err = lte_lc_init_and_connect_async(lte_handler);
@@ -123,21 +161,7 @@ void main(void)
 			 printk("lte_lc_init_and_connect_async, error: %d\n", err);
 			 return;
 		}
-
-		k_sem_take(&lte_connected, K_FOREVER);
 	}
-
-	/* Start Golioth client */
-	client->on_connect = golioth_on_connect;
-	golioth_system_client_start();
-
-	/* Block until connected to Golioth */
-	k_sem_take(&connected, K_FOREVER);
-	/* Turn on Golioth logo LED once connected */
-	gpio_pin_set_dt(&golioth_led, 1);
-
-	/* Report current DFU version to Golioth */
-	app_dfu_report_state_to_golioth();
 
 	/* Set up user button */
 	err = gpio_pin_configure_dt(&user_btn, GPIO_INPUT);
