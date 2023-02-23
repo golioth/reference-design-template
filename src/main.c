@@ -107,13 +107,14 @@ void golioth_connection_led_set(uint8_t state) {
 	uint8_t pin_state = state ? 1 : 0;
 	/* Turn on Golioth logo LED once connected */
 	gpio_pin_set_dt(&golioth_led, pin_state);
+	/* Change the state of the Golioth LED on Ostentus */
 	led_golioth_set(pin_state);
 }
 
 /* Set (unset) LED indicators for active internet connection */
 void network_led_set(uint8_t state) {
 	uint8_t pin_state = state ? 1 : 0;
-	/* TODO: Insert Ostentus code here */
+	/* Change the state of the Internet LED on Ostentus */
 	led_internet_set(pin_state);
 }
 
@@ -124,9 +125,9 @@ void main(void)
 	LOG_DBG("Start Reference Design Template sample");
 
 	/* Update Ostentus LEDS using bitmask (Power On)*/
-	led_bitmask(0x10);
+	led_bitmask(LED_POW);
 
-	/* Show Golioth Logo */
+	/* Show Golioth Logo on Ostentus ePaper screen */
 	show_splash();
 
 	/* Get system thread id so loop delay change event can wake main */
@@ -157,6 +158,8 @@ void main(void)
 
 	if (IS_ENABLED(CONFIG_LTE_AUTO_INIT_AND_CONNECT)) {
 		LOG_INF("Device is using automatic LTE control");
+		network_led_set(1);
+
 		/* Start Golioth client */
 		golioth_system_client_start();
 
@@ -191,8 +194,14 @@ void main(void)
 	gpio_init_callback(&button_cb_data, button_pressed, BIT(user_btn.pin));
 	gpio_add_callback(user_btn.port, &button_cb_data);
 
-	slide_add(1, "Counter", strlen("Counter"));
-	slide_add(2, "Anti-counter", strlen("Anti-counter"));
+	/* Set up a slideshow on Ostentus
+	 *  - add up to 256 slidesu
+	 *  - use the enum in app_work.h to add new keys
+	 *  - values are updated using these keys (see app_work.c)
+	 */
+	slide_add(UP_COUNTER, "Counter", strlen("Counter"));
+	slide_add(DN_COUNTER, "Anti-counter", strlen("Anti-counter"));
+	/* Start Ostentus slideshow with 30 second delay between slides */
 	slideshow(30000);
 
 	while (true) {

@@ -11,6 +11,7 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/sensor.h>
 
+#include "app_work.h"
 #include "libostentus/libostentus.h"
 
 static struct golioth_client *client;
@@ -54,10 +55,14 @@ void app_work_sensor_read(void) {
 			async_error_handler, NULL);
 	if (err) LOG_ERR("Failed to send sensor data to Golioth: %d", err);
 
+	/* Update slide values on Ostentus
+	 *  -values should be sent as strings
+	 *  -use the enum from app_work.h for slide key values
+	 */
 	snprintk(json_buf, 6, "%d", counter);
-	slide_set(1, json_buf, strlen(json_buf));
+	slide_set(UP_COUNTER, json_buf, strlen(json_buf));
 	snprintk(json_buf, 6, "%d", 255-counter);
-	slide_set(2, json_buf, strlen(json_buf));
+	slide_set(DN_COUNTER, json_buf, strlen(json_buf));
 
 	++counter;
 }
