@@ -16,6 +16,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include "app_state.h"
 #include "app_work.h"
 #include "dfu/app_dfu.h"
+#include "libostentus/libostentus.h"
 
 #include <zephyr/drivers/gpio.h>
 
@@ -106,12 +107,14 @@ void golioth_connection_led_set(uint8_t state) {
 	uint8_t pin_state = state ? 1 : 0;
 	/* Turn on Golioth logo LED once connected */
 	gpio_pin_set_dt(&golioth_led, pin_state);
+	led_golioth_set(pin_state);
 }
 
 /* Set (unset) LED indicators for active internet connection */
 void network_led_set(uint8_t state) {
 	uint8_t pin_state = state ? 1 : 0;
 	/* TODO: Insert Ostentus code here */
+	led_internet_set(pin_state);
 }
 
 void main(void)
@@ -119,6 +122,12 @@ void main(void)
 	int err;
 
 	LOG_DBG("Start Reference Design Template sample");
+
+	/* Update Ostentus LEDS using bitmask (Power On)*/
+	led_bitmask(0x10);
+
+	/* Show Golioth Logo */
+	show_splash();
 
 	/* Get system thread id so loop delay change event can wake main */
 	_system_thread = k_current_get();

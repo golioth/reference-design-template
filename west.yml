@@ -30,5 +30,10 @@ manifest:
       path: app/golioth-boards
       revision: 6532ee0a5755bdcd4de95966f027427889443322
       url: git@github.com:golioth/golioth-zephyr-boards.git
+
+    - name: libostentus
+      path: app/src/libostentus
+      revision: main
+      url: git@github.com:golioth/libostentus.git
   self:
     path: app
