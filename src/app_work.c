@@ -9,6 +9,8 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 
 #include <stdlib.h>
 #include <net/golioth/system_client.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/i2c.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/sensor.h>
 #include <drivers/spi.h>
@@ -19,6 +21,20 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 #include <qcbor/qcbor.h>
 #include <qcbor/qcbor_decode.h>
 #include <qcbor/qcbor_spiffy_decode.h>
+
+#define I2C_DEV_NAME DT_ALIAS(click_i2c)
+const struct device *i2c_dev;
+
+uint8_t write_buf[6] = {0};
+uint8_t read_buf[6] = {0};
+uint64_t reading_100k;
+
+/* Convert DC reading to actual value */
+uint64_t calculate_reading(uint8_t upper, uint8_t lower) {
+	uint16_t raw = (upper<<8) | lower;
+	uint64_t big = raw * 125;
+	return big;
+}
 
 #define SPI_OP	SPI_OP_MODE_MASTER | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_WORD_SET(8) | SPI_LINES_SINGLE
 
@@ -114,21 +130,38 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 	my_spi_buffer[0].len = 4;
 	const struct spi_buf_set rx_buff = { my_spi_buffer, 1 };
 
-	err = spi_read_dt(&(adc->i2c), &rx_buff);
+	//FIXME: can we read voltage and power too?
+	write_buf[0] = 0x01;
+	//FIXME: Get i2c addr (0x40) from param struct
+	err = i2c_write_read(i2c_dev, 0x40, write_buf, 1, read_buf, 2);
 	if (err) {
-		LOG_INF("spi_read status: %d", err);
+		LOG_ERR("I2C write-read err: %d", err);
 		return err;
-	}
-	LOG_DBG("Received 4 bytes: %d %d %d %d",
-			my_buffer[0],my_buffer[1],my_buffer[2], my_buffer[3]);
+	} else {
+		adc_data->val1 = (read_buf[0]<<8) | read_buf[1];
+		adc_data->val2 = (read_buf[0]<<8) | read_buf[1];
 
-	err = process_adc_reading(my_buffer, adc_data);
-	if (err == 0) {
-		LOG_INF("mcp3201_ch%d received two ADC readings: 0x%04x\t0x%04x",
-				adc->ch_num,
-				adc_data->val1, adc_data->val2);
-		return err;
+		reading_100k = calculate_reading(read_buf[0], read_buf[1]);
+		//FIXME: write this value to Ostentus here
+		LOG_INF("Current: %02X%02X -- %lld.%02lld mA", read_buf[0], read_buf[1], reading_100k/100, reading_100k%100);
 	}
+
+
+// 	err = spi_read_dt(&(adc->i2c), &rx_buff);
+// 	if (err) {
+// 		LOG_INF("spi_read status: %d", err);
+// 		return err;
+// 	}
+// 	LOG_DBG("Received 4 bytes: %d %d %d %d",
+// 			my_buffer[0],my_buffer[1],my_buffer[2], my_buffer[3]);
+//
+// 	err = process_adc_reading(my_buffer, adc_data);
+// 	if (err == 0) {
+// 		LOG_INF("mcp3201_ch%d received two ADC readings: 0x%04x\t0x%04x",
+// 				adc->ch_num,
+// 				adc_data->val1, adc_data->val2);
+// 		return err;
+// 	}
 
 	return 0;
 }
@@ -296,6 +329,16 @@ void app_work_init(struct golioth_client* work_client) {
 	LOG_DBG("mcp3201_ch1.bus = %p", adc_ch1.i2c.bus);
 	LOG_DBG("mcp3201_ch1.config.cs->gpio.port = %p", adc_ch1.i2c.config.cs->gpio.port);
 	LOG_DBG("mcp3201_ch1.config.cs->gpio.pin = %u", adc_ch1.i2c.config.cs->gpio.pin);
+
+	/* Get i2c from devicetree */
+	i2c_dev = DEVICE_DT_GET(I2C_DEV_NAME);
+	LOG_DBG("Got i2c_dev");
+	i2c_configure(i2c_dev, I2C_SPEED_SET(I2C_SPEED_STANDARD) | I2C_MODE_CONTROLLER);
+	if (!i2c_dev)
+	{
+		LOG_ERR("Cannot get I2C device");
+		return;
+	}
 
 	/* Semaphores to handle data access */
 	k_sem_give(&adc_data_sem);

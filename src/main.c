@@ -135,6 +135,53 @@ void main(void)
 	/* Show Golioth Logo on Ostentus ePaper screen */
 	show_splash();
 
+// 	i2c_dev = DEVICE_DT_GET(I2C_DEV_NAME);
+// 	LOG_DBG("Got i2c_dev");
+// 	i2c_configure(i2c_dev, I2C_SPEED_SET(I2C_SPEED_STANDARD) | I2C_MODE_CONTROLLER);
+// 	if (!i2c_dev)
+// 	{
+// 		LOG_ERR("Cannot get I2C device");
+// 		return;
+// 	}
+// 
+// 	uint8_t write_buf[6];
+// 	uint8_t read_buf[6];
+// 	uint64_t reading_100k;
+// 
+// 	while(1) {
+// 		LOG_INF("Reading from sensor...");
+// 		/* Current */
+// 		write_buf[0] = 0x01;
+// 		err = i2c_write_read(i2c_dev, 0x40, write_buf, 1, read_buf, 2);
+// 		if (err) {
+// 			LOG_ERR("I2C write-read err: %d", err);
+// 		} else {
+// 			reading_100k = calculate_reading(read_buf[0], read_buf[1]);
+// 			LOG_INF("Current: %02X%02X -- %lld.%02lld mA", read_buf[0], read_buf[1], reading_100k/100, reading_100k%100);
+// 		}
+// 
+// 		/* Bus Voltage */
+// 		write_buf[0] = 0x02;
+// 		err = i2c_write_read(i2c_dev, 0x40, write_buf, 1, read_buf, 2);
+// 		if (err) {
+// 			LOG_ERR("I2C write-read err: %d", err);
+// 		} else {
+// 			reading_100k = calculate_reading(read_buf[0], read_buf[1]);
+// 			LOG_INF("Voltage Bus: %02X%02X -- %lld.%02lld V", read_buf[0], read_buf[1], reading_100k/100000, (reading_100k%100000)/1000);
+// 		}
+// 
+// 		/* Power */
+// 		write_buf[0] = 0x03;
+// 		err = i2c_write_read(i2c_dev, 0x40, write_buf, 1, read_buf, 2);
+// 		if (err) {
+// 			LOG_ERR("I2C write-read err: %d", err);
+// 		} else {
+// 			reading_100k = calculate_reading(read_buf[0], read_buf[1]);
+// 			LOG_INF("Power: %02X%02X -- %lld.%02lld mW", read_buf[0], read_buf[1], reading_100k/100, reading_100k%100);
+// 		}
+// 		k_sleep(K_SECONDS(1));
+// 	}
+
 	/* Get system thread id so loop delay change event can wake main */
 	_system_thread = k_current_get();
 
@@ -170,6 +217,9 @@ void main(void)
 
 		/* Block until connected to Golioth */
 		k_sem_take(&connected, K_FOREVER);
+
+		/* Turn on Golioth logo LED once connected */
+		gpio_pin_set_dt(&golioth_led, 1);
 
 	} else if (IS_ENABLED(CONFIG_SOC_NRF9160)){
 		LOG_INF("Connecting to LTE network. This may take a few minutes...");
