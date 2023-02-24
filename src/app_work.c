@@ -46,7 +46,7 @@ static struct golioth_client *client;
 struct k_sem adc_data_sem;
 
 /* Formatting string for sending sensor JSON to Golioth */
-#define JSON_FMT "{\"ch0\":%d,\"ch1\":%d}"
+#define JSON_FMT "{\"ch0\":%d,\"ch1\":%d,\"vol\":{\"ch0\":%d,\"ch1\":%d},\"pow\":{\"ch0\":%d,\"ch1\":%d}}"
 #define ADC_STREAM_ENDP	"sensor"
 #define ADC_CUMULATIVE_ENDP	"state/cumulative"
 
@@ -77,6 +77,8 @@ adc_node_t adc_ch1 = {
 struct mcp3201_data {
 	uint16_t val1;
 	uint16_t val2;
+	uint16_t voltage;
+	uint16_t power;
 };
 
 void get_ontime(struct ontime *ot) {
@@ -130,7 +132,6 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 	my_spi_buffer[0].len = 4;
 	const struct spi_buf_set rx_buff = { my_spi_buffer, 1 };
 
-	//FIXME: can we read voltage and power too?
 	write_buf[0] = 0x01;
 	//FIXME: Get i2c addr (0x40) from param struct
 	err = i2c_write_read(i2c_dev, 0x40, write_buf, 1, read_buf, 2);
@@ -146,6 +147,33 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 		LOG_INF("Current: %02X%02X -- %lld.%02lld mA", read_buf[0], read_buf[1], reading_100k/100, reading_100k%100);
 	}
 
+	write_buf[0] = 0x02;
+	//FIXME: Get i2c addr (0x40) from param struct
+	err = i2c_write_read(i2c_dev, 0x40, write_buf, 1, read_buf, 2);
+	if (err) {
+		LOG_ERR("I2C write-read err: %d", err);
+		return err;
+	} else {
+		adc_data->voltage = (read_buf[0]<<8) | read_buf[1];
+
+		reading_100k = calculate_reading(read_buf[0], read_buf[1]);
+		//FIXME: write this value to Ostentus here
+		LOG_INF("Voltage Bus: %02X%02X -- %lld.%02lld V", read_buf[0], read_buf[1], reading_100k/100000, (reading_100k%100000)/1000);
+	}
+
+	write_buf[0] = 0x03;
+	//FIXME: Get i2c addr (0x40) from param struct
+	err = i2c_write_read(i2c_dev, 0x40, write_buf, 1, read_buf, 2);
+	if (err) {
+		LOG_ERR("I2C write-read err: %d", err);
+		return err;
+	} else {
+		adc_data->power = (read_buf[0]<<8) | read_buf[1];
+
+		reading_100k = calculate_reading(read_buf[0], read_buf[1]);
+		//FIXME: write this value to Ostentus here
+		LOG_INF("Power: %02X%02X -- %lld.%02lld mW", read_buf[0], read_buf[1], reading_100k/100, reading_100k%100);
+	}
 
 // 	err = spi_read_dt(&(adc->i2c), &rx_buff);
 // 	if (err) {
@@ -166,7 +194,7 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 	return 0;
 }
 
-static int push_adc_to_golioth(uint16_t ch0_data, uint16_t ch1_data) {
+static int push_adc_to_golioth(struct mcp3201_data *ch0_data, struct mcp3201_data *ch1_data) {
 	int err;
 	char json_buf[128];
 
@@ -174,8 +202,12 @@ static int push_adc_to_golioth(uint16_t ch0_data, uint16_t ch1_data) {
 			json_buf,
 			sizeof(json_buf),
 			JSON_FMT,
-			ch0_data,
-			ch1_data
+			ch0_data->val1,
+			ch1_data->val1,
+			ch0_data->voltage,
+			ch1_data->voltage,
+			ch0_data->power,
+			ch1_data->power
 			);
 
 	err = golioth_stream_push_cb(client, ADC_STREAM_ENDP,
@@ -259,7 +291,7 @@ void app_work_sensor_read(void) {
 	 * channel as it's unlikely the two readings will be substantially
 	 * different.
 	 */
-	push_adc_to_golioth(ch0_data.val1, ch1_data.val1);
+	push_adc_to_golioth(&ch0_data, &ch1_data);
 }
 
 static int get_cumulative_handler(struct golioth_req_rsp *rsp)
