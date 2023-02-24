@@ -26,7 +26,7 @@ typedef struct {
 	uint64_t total_unreported;
 	uint64_t total_cloud;
 	bool loaded_from_cloud;
-
+	uint8_t i2c_addr;
 } adc_node_t;
 
 void get_ontime(struct ontime *ot);

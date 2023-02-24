@@ -25,10 +25,6 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 #define I2C_DEV_NAME DT_ALIAS(click_i2c)
 const struct device *i2c_dev;
 
-uint8_t write_buf[6] = {0};
-uint8_t read_buf[6] = {0};
-uint64_t reading_100k;
-
 /* Convert DC reading to actual value */
 uint64_t calculate_reading(uint8_t upper, uint8_t lower) {
 	uint16_t raw = (upper<<8) | lower;
@@ -60,7 +56,8 @@ adc_node_t adc_ch0 = {
 	.runtime = 0,
 	.total_unreported = 0,
 	.total_cloud = 0,
-	.loaded_from_cloud = false
+	.loaded_from_cloud = false,
+	.i2c_addr = 0x40
 };
 
 adc_node_t adc_ch1 = {
@@ -70,7 +67,8 @@ adc_node_t adc_ch1 = {
 	.runtime = 0,
 	.total_unreported = 0,
 	.total_cloud = 0,
-	.loaded_from_cloud = false
+	.loaded_from_cloud = false,
+	.i2c_addr = 0x41
 };
 
 /* Store two values for each ADC reading */
@@ -126,21 +124,24 @@ static int process_adc_reading(uint8_t buf_data[4], struct mcp3201_data *adc_dat
 
 static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 	int err;
-	static uint8_t my_buffer[4] = {0};
-	struct spi_buf my_spi_buffer[1];
-	my_spi_buffer[0].buf = my_buffer;
-	my_spi_buffer[0].len = 4;
-	const struct spi_buf_set rx_buff = { my_spi_buffer, 1 };
+// 	static uint8_t my_buffer[4] = {0};
+// 	struct spi_buf my_spi_buffer[1];
+// 	my_spi_buffer[0].buf = my_buffer;
+// 	my_spi_buffer[0].len = 4;
+// 	const struct spi_buf_set rx_buff = { my_spi_buffer, 1 };
+
+	uint8_t write_buf[6] = {0};
+	uint8_t read_buf[6] = {0};
+	uint64_t reading_100k;
 
 	write_buf[0] = 0x01;
 	//FIXME: Get i2c addr (0x40) from param struct
-	err = i2c_write_read(i2c_dev, 0x40, write_buf, 1, read_buf, 2);
+	err = i2c_write_read(i2c_dev, adc->i2c_addr, write_buf, 1, read_buf, 2);
 	if (err) {
 		LOG_ERR("I2C write-read err: %d", err);
 		return err;
 	} else {
 		adc_data->val1 = (read_buf[0]<<8) | read_buf[1];
-		adc_data->val2 = (read_buf[0]<<8) | read_buf[1];
 
 		reading_100k = calculate_reading(read_buf[0], read_buf[1]);
 		//FIXME: write this value to Ostentus here
@@ -149,7 +150,7 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 
 	write_buf[0] = 0x02;
 	//FIXME: Get i2c addr (0x40) from param struct
-	err = i2c_write_read(i2c_dev, 0x40, write_buf, 1, read_buf, 2);
+	err = i2c_write_read(i2c_dev, adc->i2c_addr, write_buf, 1, read_buf, 2);
 	if (err) {
 		LOG_ERR("I2C write-read err: %d", err);
 		return err;
@@ -163,7 +164,7 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 
 	write_buf[0] = 0x03;
 	//FIXME: Get i2c addr (0x40) from param struct
-	err = i2c_write_read(i2c_dev, 0x40, write_buf, 1, read_buf, 2);
+	err = i2c_write_read(i2c_dev, adc->i2c_addr, write_buf, 1, read_buf, 2);
 	if (err) {
 		LOG_ERR("I2C write-read err: %d", err);
 		return err;
