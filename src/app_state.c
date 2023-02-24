@@ -46,12 +46,20 @@ void app_state_init(struct golioth_client* state_client) {
 }
 
 static int reset_desired(void) {
-	LOG_INF("Resetting \"%s\" LightDB State endpoint to defaults.",
-			APP_STATE_DESIRED_ENDP
-			);
 
-	char sbuf[strlen(DEVICE_STATE_FMT)+8]; /* small bit of extra space */
-	snprintk(sbuf, sizeof(sbuf), DEVICE_STATE_FMT, -1, -1);
+	QCBOREncodeContext encode_ctx;
+	UsefulBuf_MAKE_STACK_UB(useful_buf, 48);
+	QCBOREncode_Init(&encode_ctx, useful_buf);
+	QCBOREncode_OpenMap(&encode_ctx);
+	QCBOREncode_AddBoolToMap(&encode_ctx, DESIRED_RESET_KEY, false);
+	QCBOREncode_CloseMap(&encode_ctx);
+	UsefulBufC EncodedCBOR;
+	QCBORError qcErr = QCBOREncode_Finish(&encode_ctx, &EncodedCBOR);
+
+	if (qcErr) {
+		LOG_ERR("Error encoding CBOR to reset deired endpoint: %d", qcErr);
+		return -qcErr;
+	}
 
 	int err;
 	err = golioth_lightdb_set_cb(
@@ -68,7 +76,6 @@ static int reset_desired(void) {
 		return err;
 	}
 	return 0;
-
 
 }
 
@@ -187,19 +194,3 @@ int app_state_desired_handler(struct golioth_req_rsp *rsp) {
 	}
 	return 0;
 }
-
-void app_state_observe(void) {
-	int err = golioth_lightdb_observe_cb(client, APP_STATE_DESIRED_ENDP,
-			GOLIOTH_CONTENT_FORMAT_APP_JSON, app_state_desired_handler, NULL);
-	if (err) {
-	   LOG_WRN("failed to observe lightdb path: %d", err);
-	}
-
-	// This will only run when we first connect. It updates the actual state of
-	// the device with the Golioth servers. Future updates will be sent whenever
-	// changes occur.
-	if (k_sem_take(&update_actual, K_NO_WAIT) == 0) {
-		app_state_update_actual();
-	}
-}
-
