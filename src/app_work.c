@@ -203,10 +203,10 @@ static int push_adc_to_golioth(struct mcp3201_data *ch0_data, struct mcp3201_dat
 			json_buf,
 			sizeof(json_buf),
 			JSON_FMT,
-			ch0_data->val1,
-			ch1_data->val1,
-			ch0_data->voltage,
-			ch1_data->voltage,
+			(int16_t)ch0_data->val1,
+			(int16_t)ch1_data->val1,
+			(int16_t)ch0_data->voltage,
+			(int16_t)ch1_data->voltage,
 			ch0_data->power,
 			ch1_data->power
 			);
