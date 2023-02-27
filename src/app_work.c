@@ -124,18 +124,12 @@ static int process_adc_reading(uint8_t buf_data[4], struct mcp3201_data *adc_dat
 
 static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 	int err;
-// 	static uint8_t my_buffer[4] = {0};
-// 	struct spi_buf my_spi_buffer[1];
-// 	my_spi_buffer[0].buf = my_buffer;
-// 	my_spi_buffer[0].len = 4;
-// 	const struct spi_buf_set rx_buff = { my_spi_buffer, 1 };
 
 	uint8_t write_buf[6] = {0};
 	uint8_t read_buf[6] = {0};
 	uint64_t reading_100k;
 
 	write_buf[0] = 0x01;
-	//FIXME: Get i2c addr (0x40) from param struct
 	err = i2c_write_read(i2c_dev, adc->i2c_addr, write_buf, 1, read_buf, 2);
 	if (err) {
 		LOG_ERR("I2C write-read err: %d", err);
@@ -149,7 +143,6 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 	}
 
 	write_buf[0] = 0x02;
-	//FIXME: Get i2c addr (0x40) from param struct
 	err = i2c_write_read(i2c_dev, adc->i2c_addr, write_buf, 1, read_buf, 2);
 	if (err) {
 		LOG_ERR("I2C write-read err: %d", err);
@@ -163,7 +156,6 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 	}
 
 	write_buf[0] = 0x03;
-	//FIXME: Get i2c addr (0x40) from param struct
 	err = i2c_write_read(i2c_dev, adc->i2c_addr, write_buf, 1, read_buf, 2);
 	if (err) {
 		LOG_ERR("I2C write-read err: %d", err);
@@ -175,22 +167,6 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 		//FIXME: write this value to Ostentus here
 		LOG_INF("Power: %02X%02X -- %lld.%02lld mW", read_buf[0], read_buf[1], reading_100k/100, reading_100k%100);
 	}
-
-// 	err = spi_read_dt(&(adc->i2c), &rx_buff);
-// 	if (err) {
-// 		LOG_INF("spi_read status: %d", err);
-// 		return err;
-// 	}
-// 	LOG_DBG("Received 4 bytes: %d %d %d %d",
-// 			my_buffer[0],my_buffer[1],my_buffer[2], my_buffer[3]);
-//
-// 	err = process_adc_reading(my_buffer, adc_data);
-// 	if (err == 0) {
-// 		LOG_INF("mcp3201_ch%d received two ADC readings: 0x%04x\t0x%04x",
-// 				adc->ch_num,
-// 				adc_data->val1, adc_data->val2);
-// 		return err;
-// 	}
 
 	return 0;
 }
