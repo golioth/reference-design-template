@@ -195,7 +195,7 @@ void main(void)
 	gpio_add_callback(user_btn.port, &button_cb_data);
 
 	/* Set up a slideshow on Ostentus
-	 *  - add up to 256 slidesu
+	 *  - add up to 256 slides
 	 *  - use the enum in app_work.h to add new keys
 	 *  - values are updated using these keys (see app_work.c)
 	 */
