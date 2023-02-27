@@ -26,8 +26,8 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 const struct device *i2c_dev;
 
 /* Convert DC reading to actual value */
-uint64_t calculate_reading(uint8_t upper, uint8_t lower) {
-	uint16_t raw = (upper<<8) | lower;
+int64_t calculate_reading(uint8_t upper, uint8_t lower) {
+	int16_t raw = (upper<<8) | lower;
 	uint64_t big = raw * 125;
 	return big;
 }
@@ -127,7 +127,7 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 
 	uint8_t write_buf[6] = {0};
 	uint8_t read_buf[6] = {0};
-	uint64_t reading_100k;
+	int64_t reading_100k;
 
 	write_buf[0] = 0x01;
 	err = i2c_write_read(i2c_dev, adc->i2c_addr, write_buf, 1, read_buf, 2);
@@ -139,7 +139,7 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 
 		reading_100k = calculate_reading(read_buf[0], read_buf[1]);
 		//FIXME: write this value to Ostentus here
-		LOG_INF("Current: %02X%02X -- %lld.%02lld mA", read_buf[0], read_buf[1], reading_100k/100, reading_100k%100);
+		LOG_INF("Current: %02X%02X -- %lld.%02lld mA", read_buf[0], read_buf[1], reading_100k/100, llabs(reading_100k%100));
 	}
 
 	write_buf[0] = 0x02;
@@ -152,7 +152,7 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 
 		reading_100k = calculate_reading(read_buf[0], read_buf[1]);
 		//FIXME: write this value to Ostentus here
-		LOG_INF("Voltage Bus: %02X%02X -- %lld.%02lld V", read_buf[0], read_buf[1], reading_100k/100000, (reading_100k%100000)/1000);
+		LOG_INF("Voltage Bus: %02X%02X -- %lld.%02lld V", read_buf[0], read_buf[1], reading_100k/100000, llabs((reading_100k%100000)/1000));
 	}
 
 	write_buf[0] = 0x03;
@@ -165,7 +165,7 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 
 		reading_100k = calculate_reading(read_buf[0], read_buf[1]);
 		//FIXME: write this value to Ostentus here
-		LOG_INF("Power: %02X%02X -- %lld.%02lld mW", read_buf[0], read_buf[1], reading_100k/100, reading_100k%100);
+		LOG_INF("Power: %02X%02X -- %lld.%02lld mW", read_buf[0], read_buf[1], reading_100k/100, llabs(reading_100k%100));
 	}
 
 	return 0;
