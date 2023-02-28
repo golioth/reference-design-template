@@ -254,10 +254,15 @@ void main(void)
 	 *  - use the enum in app_work.h to add new keys
 	 *  - values are updated using these keys (see app_work.c)
 	 */
-	slide_add(UP_COUNTER, "Counter", strlen("Counter"));
-	slide_add(DN_COUNTER, "Anti-counter", strlen("Anti-counter"));
-	/* Set the title ofthe Ostentus summary slide (optional) */
-	summary_title("Counters:", strlen("Counters:"));
+
+	slide_add(CH0_CURRENT, CH0_CUR_LABEL, strlen(CH0_CUR_LABEL));
+	slide_add(CH0_POWER, CH0_POW_LABEL, strlen(CH0_POW_LABEL));
+	slide_add(CH0_VOLTAGE, CH0_VOL_LABEL, strlen(CH0_VOL_LABEL));
+	slide_add(CH1_CURRENT, CH1_CUR_LABEL, strlen(CH1_CUR_LABEL));
+	slide_add(CH1_POWER, CH1_POW_LABEL, strlen(CH1_POW_LABEL));
+	slide_add(CH1_VOLTAGE, CH1_VOL_LABEL, strlen(CH1_VOL_LABEL));
+	/* Set the title of the Ostentus summary slide (optional) */
+	summary_title("Channel 0:", strlen("Channel 0:"));
 	/* Start Ostentus slideshow with 30 second delay between slides */
 	slideshow(30000);
 

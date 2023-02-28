@@ -40,8 +40,20 @@ void app_work_sensor_read(void);
  * inserting elements with the name of your choice to this enum.
  */
 typedef enum {
-    UP_COUNTER,
-    DN_COUNTER
+    CH0_CURRENT,
+    CH0_POWER,
+    CH0_VOLTAGE,
+    CH1_CURRENT,
+    CH1_POWER,
+    CH1_VOLTAGE
 }slide_key;
+
+/* Ostentus slide labels */
+#define CH0_CUR_LABEL "Current ch0"
+#define CH0_VOL_LABEL "Voltage ch0"
+#define CH0_POW_LABEL "Power ch0"
+#define CH1_CUR_LABEL "Current ch1"
+#define CH1_VOL_LABEL "Voltage ch1"
+#define CH1_POW_LABEL "Power ch1"
 
 #endif /* __APP_WORK_H__ */

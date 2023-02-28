@@ -128,6 +128,7 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 	uint8_t write_buf[6] = {0};
 	uint8_t read_buf[6] = {0};
 	int64_t reading_100k;
+	char msg[32] = { '\0' };
 
 	write_buf[0] = 0x01;
 	err = i2c_write_read(i2c_dev, adc->i2c_addr, write_buf, 1, read_buf, 2);
@@ -139,7 +140,9 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 
 		reading_100k = calculate_reading(read_buf[0], read_buf[1]);
 		//FIXME: write this value to Ostentus here
-		LOG_INF("Current: %02X%02X -- %lld.%02lld mA", read_buf[0], read_buf[1], reading_100k/100, llabs(reading_100k%100));
+		snprintk(msg, sizeof(msg), "%lld.%02lld mA", reading_100k/100, llabs(reading_100k%100));
+		slide_set(adc->ch_num == 0 ? CH0_CURRENT : CH1_CURRENT, msg, strlen(msg));
+		LOG_INF("Current: %02X%02X -- %s", read_buf[0], read_buf[1], msg);
 	}
 
 	write_buf[0] = 0x02;
@@ -151,8 +154,9 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 		adc_data->voltage = (read_buf[0]<<8) | read_buf[1];
 
 		reading_100k = calculate_reading(read_buf[0], read_buf[1]);
-		//FIXME: write this value to Ostentus here
-		LOG_INF("Voltage Bus: %02X%02X -- %lld.%02lld V", read_buf[0], read_buf[1], reading_100k/100000, llabs((reading_100k%100000)/1000));
+		snprintk(msg, sizeof(msg), "%lld.%02lld V", reading_100k/100000, llabs((reading_100k%100000)/1000));
+		slide_set(adc->ch_num == 0 ? CH0_VOLTAGE : CH1_VOLTAGE, msg, strlen(msg));
+		LOG_INF("Voltage Bus: %02X%02X -- %s", read_buf[0], read_buf[1], msg);
 	}
 
 	write_buf[0] = 0x03;
@@ -164,8 +168,9 @@ static int get_adc_reading(adc_node_t *adc, struct mcp3201_data *adc_data) {
 		adc_data->power = (read_buf[0]<<8) | read_buf[1];
 
 		reading_100k = calculate_reading(read_buf[0], read_buf[1]);
-		//FIXME: write this value to Ostentus here
-		LOG_INF("Power: %02X%02X -- %lld.%02lld mW", read_buf[0], read_buf[1], reading_100k/100, llabs(reading_100k%100));
+		snprintk(msg, sizeof(msg), "%lld.%02lld mW", reading_100k/100, llabs(reading_100k%100));
+		slide_set(adc->ch_num == 0 ? CH0_POWER : CH1_POWER, msg, strlen(msg));
+		LOG_INF("Power: %02X%02X -- %s", read_buf[0], read_buf[1], msg);
 	}
 
 	return 0;
