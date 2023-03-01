@@ -24,7 +24,7 @@ Install the Python virtual environment (recommended)
    mkdir golioth-reference-design-template
    python -m venv golioth-reference-design-template/.venv
    source golioth-reference-design-template/.venv/bin/activate
-   pip install wheel west
+   pip install wheel west pre-commit
 
 Use ``west`` to initialize and install
 ======================================
@@ -36,9 +36,21 @@ Use ``west`` to initialize and install
    west update
    west zephyr-export
    pip install -r deps/zephyr/scripts/requirements.txt
+   source deps/zephyr/zephyr-env.sh
 
 This will also install the `golioth-zephyr-boards`_ definitions for the Golioth
 Aludel-Mini.
+
+Install ``pre-commit`` hooks
+============================
+
+This will install ``pre-commit`` hooks that will automatically check for simple
+issues before they are checked into the repo.
+
+.. code-block:: console
+
+   cd ~/golioth-reference-design-template/app
+   pre-commit install
 
 Building the application
 ************************

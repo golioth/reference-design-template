@@ -1,0 +1,16 @@
+# Copyright (c) 2023 Golioth, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    - id: check-symlinks
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
+      args: [--markdown-linebreak-ext=md]
+  - repo: https://github.com/cgnd/zephyr-pre-commit-hooks
+    rev: v0.1.2
+    hooks:
+    - id: zephyr-checkpatch
