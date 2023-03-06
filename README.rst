@@ -58,6 +58,7 @@ functionality on this Reference Design.
 
    $ (.venv) west build -b aludel_mini_v1_sparkfun9160_ns app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"<your.semantic.version>\"
    $ (.venv) west flash
+   $ (.venv) nrfjprog -r
 
 Configure PSK-ID and PSK using the device shell based on your Golioth
 credentials and reboot:
