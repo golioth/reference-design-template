@@ -72,9 +72,39 @@ Golioth Features
 ****************
 
 This app currently implements Over-the-Air (OTA) firmware updates, Settings
-Service, Logging, and RPC. To adjust the delay between hello
-messages, set a ``LOOP_DELAY_S`` key with a interger value (seconds) in the
-Device Settings menu of the `Golioth Console`_.
+Service, Logging, and RPC.
+
+Settings Service
+================
+
+The following settings should be set in the Device Settings menu of the
+`Golioth Console`_.
+
+``LOOP_DELAY_S``
+   Adjusts the delay between sensor readings. Set to an integer value (seconds).
+
+   Default value is ``60`` seconds.
+
+Remote Procedure Call (RPC) Service
+===================================
+
+The following RPCs can be initiated in the Remote Procedure Call menu of the
+`Golioth Console`_.
+
+``reboot``
+   Reboot the system.
+
+``set_log_level``
+   Set the log level.
+
+   The method takes a single parameter which can be one of the following integer
+   values:
+
+   * ``0``: ``LOG_LEVEL_NONE``
+   * ``1``: ``LOG_LEVEL_ERR``
+   * ``2``: ``LOG_LEVEL_WRN``
+   * ``3``: ``LOG_LEVEL_INF``
+   * ``4``: ``LOG_LEVEL_DBG``
 
 .. _Golioth Console: https://console.golioth.io
 .. _golioth-zephyr-boards: https://github.com/golioth/golioth-zephyr-boards
