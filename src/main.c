@@ -134,6 +134,7 @@ void main(void)
 
 	/* Show Golioth Logo on Ostentus ePaper screen */
 	show_splash();
+	k_sleep(K_SECONDS(4));
 
 // 	i2c_dev = DEVICE_DT_GET(I2C_DEV_NAME);
 // 	LOG_DBG("Got i2c_dev");
