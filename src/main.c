@@ -23,6 +23,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 
 K_SEM_DEFINE(connected, 0, 1);
+K_SEM_DEFINE(dfu_status_update, 0, 1);
 
 static k_tid_t _system_thread = 0;
 
@@ -57,6 +58,8 @@ static void golioth_on_connect(struct golioth_client *client)
 		/* Report current DFU version to Golioth */
 		//FIXME: we can't call this here because it's sync (deadlock)
  		//app_dfu_report_state_to_golioth();
+		//This semaphore is a workaround
+		k_sem_give(&dfu_status_update);
 
 		/* Indicate connection using LEDs */
 		golioth_connection_led_set(1);
@@ -207,6 +210,10 @@ void main(void)
 	slideshow(30000);
 
 	while (true) {
+		if (k_sem_take(&dfu_status_update, K_NO_WAIT) == 0) {
+			app_dfu_report_state_to_golioth();
+		}
+
 		app_work_sensor_read();
 
 		k_sleep(K_SECONDS(get_loop_delay_s()));
