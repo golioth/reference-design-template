@@ -127,6 +127,8 @@ void main(void)
 
 	LOG_DBG("Start Reference Design Template sample");
 
+	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMAGE_VERSION);
+
 	/* Update Ostentus LEDS using bitmask (Power On)*/
 	led_bitmask(LED_POW);
 
