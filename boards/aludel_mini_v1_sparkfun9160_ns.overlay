@@ -12,3 +12,7 @@
 		label = "mcp3201_ch1";
 	};
 };
+
+&i2c1 {
+	zephyr,concat-buf-size = <48>;
+};
