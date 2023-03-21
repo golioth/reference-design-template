@@ -12,7 +12,7 @@
 #define APP_STATE_DESIRED_ENDP "desired"
 #define APP_STATE_ACTUAL_ENDP  "state"
 
-void app_state_init(struct golioth_client* state_client);
+void app_state_init(struct golioth_client *state_client);
 void app_state_observe(void);
 void app_state_update_actual(void);
 
