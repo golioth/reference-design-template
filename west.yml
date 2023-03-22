@@ -33,7 +33,7 @@ manifest:
 
     - name: libostentus
       path: app/src/libostentus
-      revision: main
+      revision: 5d37e4160959881932d1dd869e1d238096878cf2
       url: git@github.com:golioth/libostentus.git
   self:
     path: app
