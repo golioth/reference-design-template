@@ -51,4 +51,11 @@ struct battery_level_point {
 unsigned int battery_level_pptt(unsigned int batt_mV,
 				const struct battery_level_point *curve);
 
+/**
+ * @brief Log the battery voltage and estimated level
+ *
+ * @return Error number or zero if successful
+ */
+int log_battery_info(void);
+
 #endif /* APPLICATION_BATTERY_H_ */
