@@ -260,11 +260,8 @@ unsigned int battery_level_pptt(unsigned int batt_mV,
 }
 
 
-int log_battery_info(void)
+int read_battery_info(struct sensor_value *batt_v, struct sensor_value *batt_lvl)
 {
-	/* Borrowed from samples/boards/nrf/battery/main.c */
-	struct sensor_value batt_v = {0, 0};
-	struct sensor_value batt_lvl = {0, 0};
 
 	/* Turn on the voltage divider circuit */
 	int err = battery_measure_enable(true);
@@ -289,9 +286,23 @@ int log_battery_info(void)
 		return err;
 	}
 
-	sensor_value_from_double(&batt_v, batt_mV / 1000.0);
-	sensor_value_from_double(&batt_lvl, battery_level_pptt(batt_mV,
+	sensor_value_from_double(batt_v, batt_mV / 1000.0);
+	sensor_value_from_double(batt_lvl, battery_level_pptt(batt_mV,
 		batt_levels) / 100.0);
+
+	return 0;
+}
+
+int log_battery_info(void)
+{
+	int err;
+	struct sensor_value batt_v = {0, 0};
+	struct sensor_value batt_lvl = {0, 0};
+
+	err = read_battery_info(&batt_v, &batt_lvl);
+	if (err)
+		return err;
+
 	LOG_INF("Battery measurement: voltage=%d.%d V, level=%d.%d",
 		batt_v.val1, batt_v.val2, batt_lvl.val1, batt_lvl.val2);
 

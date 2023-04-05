@@ -52,6 +52,17 @@ unsigned int battery_level_pptt(unsigned int batt_mV,
 				const struct battery_level_point *curve);
 
 /**
+ * @brief Read the battery voltage and estimated level
+ *
+ * @param batt_v measured battery voltage
+ *
+ * @param batt_lvl remaining battery level
+ *
+ * @return Error number or zero if successful
+ */
+int read_battery_info(struct sensor_value *batt_v, struct sensor_value *batt_lvl);
+
+/**
  * @brief Log the battery voltage and estimated level
  *
  * @return Error number or zero if successful
