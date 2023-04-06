@@ -26,11 +26,13 @@ enum golioth_settings_status on_setting(
 	if (strcmp(key, "LOOP_DELAY_S") == 0) {
 		/* This setting is expected to be numeric, return an error if it's not */
 		if (value->type != GOLIOTH_SETTINGS_VALUE_TYPE_INT64) {
+			LOG_DBG("Received LOOP_DELAY_S is not an integer type.");
 			return GOLIOTH_SETTINGS_VALUE_FORMAT_NOT_VALID;
 		}
 
 		/* Limit to 12 hour max delay: [1, 43200] */
 		if (value->i64 < 1 || value->i64 > 43200) {
+			LOG_DBG("Received LOOP_DELAY_S setting is outside allowed range.");
 			return GOLIOTH_SETTINGS_VALUE_OUTSIDE_RANGE;
 		}
 
