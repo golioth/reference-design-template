@@ -47,8 +47,8 @@ static void golioth_on_connect(struct golioth_client *client)
 
 	LOG_INF("Registering observations with Golioth");
 	app_dfu_observe();
-	app_register_settings(client);
-	app_register_rpc(client);
+	app_settings_observe();
+	app_rpc_observe();
 	app_state_observe();
 
 	static bool initial_connection = true;
@@ -152,6 +152,12 @@ void main(void)
 
 	/* Initialize DFU components */
 	app_dfu_init(client);
+
+	/* Initialize app settings */
+	app_settings_init(client);
+
+	/* Initialize app RPC */
+	app_rpc_init(client);
 
 	/* Register Golioth on_connect callback */
 	client->on_connect = golioth_on_connect;

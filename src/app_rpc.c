@@ -15,6 +15,10 @@ LOG_MODULE_REGISTER(app_rpc, LOG_LEVEL_DBG);
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/sys/reboot.h>
 
+#include "app_rpc.h"
+
+static struct golioth_client *client;
+
 static void reboot_work_handler(struct k_work *work)
 {
 	/* Sync longs before reboot */
@@ -84,6 +88,19 @@ static void rpc_log_if_register_failure(int err)
 {
 	if (err) {
 		LOG_ERR("Failed to register RPC: %d", err);
+	}
+}
+
+void app_rpc_init(struct golioth_client *state_client)
+{
+	client = state_client;
+	app_register_rpc(client);
+}
+
+void app_rpc_observe(void) {
+	int err = golioth_rpc_observe(client);
+	if (err) {
+		LOG_ERR("Failed to observe RPC: %d", err);
 	}
 }
 
