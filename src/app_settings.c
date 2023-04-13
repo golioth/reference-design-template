@@ -10,6 +10,10 @@ LOG_MODULE_REGISTER(app_settings, LOG_LEVEL_DBG);
 #include <net/golioth/settings.h>
 #include "main.h"
 
+#include "app_settings.h"
+
+static struct golioth_client *client;
+
 static int32_t _loop_delay_s = 60;
 
 int32_t get_loop_delay_s(void)
@@ -50,6 +54,19 @@ enum golioth_settings_status on_setting(
 
 	/* If the setting is not recognized, we should return an error */
 	return GOLIOTH_SETTINGS_KEY_NOT_RECOGNIZED;
+}
+
+void app_settings_init(struct golioth_client *state_client)
+{
+	client = state_client;
+	app_register_settings(client);
+}
+
+void app_settings_observe(void) {
+	int err = golioth_settings_observe(client);
+	if (err) {
+		LOG_ERR("Failed to observe settings: %d", err);
+	}
 }
 
 int app_register_settings(struct golioth_client *settings_client)
