@@ -265,7 +265,6 @@ int read_battery_info(struct sensor_value *batt_v, struct sensor_value *batt_lvl
 
 	/* Turn on the voltage divider circuit */
 	int err = battery_measure_enable(true);
-
 	if (err) {
 		LOG_ERR("Failed to enable battery measurement power: %d", err);
 		return err;
@@ -273,10 +272,9 @@ int read_battery_info(struct sensor_value *batt_v, struct sensor_value *batt_lvl
 
 	/* Read the battery voltage */
 	int batt_mV = battery_sample();
-
 	if (batt_mV < 0) {
 		LOG_ERR("Failed to read battery voltage: %d", batt_mV);
-		return err;
+		return batt_mV;
 	}
 
 	/* Turn off the voltage divider circuit */
@@ -303,8 +301,8 @@ int log_battery_info(void)
 	if (err)
 		return err;
 
-	LOG_INF("Battery measurement: voltage=%d.%d V, level=%d.%d",
-		batt_v.val1, batt_v.val2, batt_lvl.val1, batt_lvl.val2);
+	LOG_INF("Battery measurement: voltage=%.2f V, level=%d%%",
+		sensor_value_to_double(&batt_v), batt_lvl.val1);
 
 	return 0;
 }
