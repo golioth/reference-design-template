@@ -56,7 +56,7 @@ functionality on this Reference Design.
 
 .. code-block:: console
 
-   $ (.venv) west build -b aludel_mini_v1_sparkfun9160_ns app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"<your.semantic.version>\"
+   $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"<your.semantic.version>\"
    $ (.venv) west flash
 
 Configure PSK-ID and PSK using the device shell based on your Golioth
@@ -108,3 +108,23 @@ The following RPCs can be initiated in the Remote Procedure Call menu of the
 
 .. _Golioth Console: https://console.golioth.io
 .. _golioth-zephyr-boards: https://github.com/golioth/golioth-zephyr-boards
+
+Hardware Variations
+*******************
+
+Nordic nRF9160 DK
+=================
+
+This reference design may be built for the `Nordic nRF9160 DK`_.
+
+Use the following commands to build and program. (Use the same console commands
+from above to provision this board after programming the firmware.)
+
+.. code-block:: console
+
+   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"<your.semantic.version>\"
+   $ (.venv) west flash
+
+.. _Golioth Console: https://console.golioth.io
+.. _golioth-zephyr-boards: https://github.com/golioth/golioth-zephyr-boards
+.. _Nordic nRF9160 DK: https://www.nordicsemi.com/Products/Development-hardware/nrf9160-dk
