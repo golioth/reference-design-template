@@ -19,7 +19,7 @@
 
 #include "battery_monitor/battery.h"
 
-LOG_MODULE_REGISTER(battery, CONFIG_ADC_LOG_LEVEL);
+LOG_MODULE_REGISTER(battery, LOG_LEVEL_DBG);
 
 #define VBATT DT_PATH(vbatt)
 #define ZEPHYR_USER DT_PATH(zephyr_user)
@@ -219,11 +219,11 @@ int battery_sample(void)
 			if (dcp->output_ohm != 0) {
 				rc = val * (uint64_t)dcp->full_ohm
 					/ dcp->output_ohm;
-				LOG_DBG("raw %u ~ %u mV => %d mV\n",
+				LOG_DBG("raw %u ~ %u mV => %d mV",
 					ddp->raw, val, rc);
 			} else {
 				rc = val;
-				LOG_DBG("raw %u ~ %u mV\n", ddp->raw, val);
+				LOG_DBG("raw %u ~ %u mV", ddp->raw, val);
 			}
 		}
 	}
