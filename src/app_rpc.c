@@ -21,15 +21,15 @@ static struct golioth_client *client;
 
 static void reboot_work_handler(struct k_work *work)
 {
-	/* Sync longs before reboot */
-	LOG_PANIC();
-
 	for (int8_t i = 5; i >= 0; i--) {
 		if (i) {
 			LOG_INF("Rebooting in %d seconds...", i);
 		}
 		k_sleep(K_SECONDS(1));
 	}
+
+	/* Sync longs before reboot */
+	LOG_PANIC();
 
 	sys_reboot(SYS_REBOOT_COLD);
 }
@@ -79,6 +79,7 @@ static enum golioth_rpc_status on_reboot(QCBORDecodeContext *request_params_arra
 					   QCBOREncodeContext *response_detail_map,
 					   void *callback_arg)
 {
+	/* Use work queue so this RPC can return confirmation to Golioth */
 	k_work_submit(&reboot_work);
 
 	return GOLIOTH_RPC_OK;
