@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Golioth, Inc.
+ * Copyright (c) 2022-2023 Golioth, Inc.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -105,6 +105,9 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb,
 					uint32_t pins)
 {
 	LOG_DBG("Button pressed at %d", k_cycle_get_32());
+	/* This function is an Interrupt Service Routine. Do not call functions that
+	 * use other threads, or perform long-running operations here
+	 */
 	k_wakeup(_system_thread);
 }
 
