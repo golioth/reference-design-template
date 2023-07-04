@@ -103,8 +103,11 @@ The following RPCs can be initiated in the Remote Procedure Call menu of the
    * ``3``: ``LOG_LEVEL_INF``
    * ``4``: ``LOG_LEVEL_DBG``
 
-.. _Golioth Console: https://console.golioth.io
-.. _golioth-zephyr-boards: https://github.com/golioth/golioth-zephyr-boards
+Further Information in Header Files
+===================================
+
+Please refer to the comments in each header file for a service-by-service
+explanation of this template.
 
 Hardware Variations
 *******************
