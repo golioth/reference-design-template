@@ -8,6 +8,7 @@
 #define __APP_SETTINGS_H__
 
 #include <stdint.h>
+#include <net/golioth/system_client.h>
 
 int32_t get_loop_delay_s(void);
 int app_settings_init(struct golioth_client *state_client);
