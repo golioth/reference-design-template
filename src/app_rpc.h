@@ -9,6 +9,6 @@
 
 void app_rpc_init(struct golioth_client *state_client);
 void app_rpc_observe(void);
-int app_register_rpc(struct golioth_client *rpc_client);
+int app_rpc_register(struct golioth_client *rpc_client);
 
 #endif /* __APP_RPC_H__ */

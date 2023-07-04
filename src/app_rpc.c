@@ -95,7 +95,7 @@ static void rpc_log_if_register_failure(int err)
 void app_rpc_init(struct golioth_client *state_client)
 {
 	client = state_client;
-	app_register_rpc(client);
+	app_rpc_register(client);
 }
 
 void app_rpc_observe(void) {
@@ -105,7 +105,7 @@ void app_rpc_observe(void) {
 	}
 }
 
-int app_register_rpc(struct golioth_client *rpc_client)
+int app_rpc_register(struct golioth_client *rpc_client)
 {
 	int err;
 
