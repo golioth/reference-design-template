@@ -154,7 +154,7 @@ int app_state_desired_handler(struct golioth_req_rsp *rsp)
 	return err;
 }
 
-void app_state_observe(void)
+int app_state_observe(void)
 {
 	int err = golioth_lightdb_observe_cb(client, APP_STATE_DESIRED_ENDP,
 			GOLIOTH_CONTENT_FORMAT_APP_JSON, app_state_desired_handler, NULL);
@@ -162,12 +162,14 @@ void app_state_observe(void)
 		LOG_WRN("failed to observe lightdb path: %d", err);
 	}
 
-	/* This will only run when we first connect. It updates the actual state of
-	 * the device with the Golioth servers. Future updates will be sent whenever
+	/* This will only run once. It updates the actual state of the device
+	 * with the Golioth servers. Future updates will be sent whenever
 	 * changes occur.
 	 */
 	if (k_sem_take(&update_actual, K_NO_WAIT) == 0) {
-		app_state_update_actual();
+		err = app_state_update_actual();
 	}
+
+	return err;
 }
 

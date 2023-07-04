@@ -13,7 +13,7 @@
 #define APP_STATE_ACTUAL_ENDP  "state"
 
 void app_state_init(struct golioth_client *state_client);
-void app_state_observe(void);
+int app_state_observe(void);
 int app_state_update_actual(void);
 
 #endif /* __APP_STATE_H__ */
