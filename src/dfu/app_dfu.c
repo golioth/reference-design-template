@@ -230,11 +230,12 @@ void app_dfu_observe(void) {
 }
 
 void app_dfu_report_state_to_golioth(void) {
-	int err = golioth_fw_report_state(client, "main",
+	int err = golioth_fw_report_state_cb(client, "main",
 				      current_version_str,
 				      NULL,
 				      GOLIOTH_FW_STATE_IDLE,
-				      dfu_initial_result);
+				      dfu_initial_result,
+				      NULL, NULL);
 	if (err) {
 		LOG_ERR("Failed to report firmware state: %d", err);
 	}
