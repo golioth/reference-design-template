@@ -7,6 +7,17 @@
 #ifndef __APP_SETTINGS_H__
 #define __APP_SETTINGS_H__
 
+/**
+ * Process changes received from the Golioth Settings Service and return a code
+ * to Golioth to indicate the success or failure of the update.
+ *
+ * In this demonstration, the device looks for the `LOOP_DELAY_S` key from the
+ * Settings Service and uses this value to determine the delay between sensor
+ * reads (the period of sleep in the loop of `main.c`.
+ *
+ * https://docs.golioth.io/firmware/zephyr-device-sdk/device-settings-service
+ */
+
 #include <stdint.h>
 #include <net/golioth/system_client.h>
 
