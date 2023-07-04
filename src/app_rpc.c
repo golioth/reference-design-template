@@ -92,17 +92,19 @@ static void rpc_log_if_register_failure(int err)
 	}
 }
 
-void app_rpc_init(struct golioth_client *state_client)
+int app_rpc_init(struct golioth_client *state_client)
 {
 	client = state_client;
-	app_rpc_register(client);
+	int err = app_rpc_register(client);
+	return err;
 }
 
-void app_rpc_observe(void) {
+int app_rpc_observe(void) {
 	int err = golioth_rpc_observe(client);
 	if (err) {
 		LOG_ERR("Failed to observe RPC: %d", err);
 	}
+	return err;
 }
 
 int app_rpc_register(struct golioth_client *rpc_client)
