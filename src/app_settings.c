@@ -59,7 +59,7 @@ enum golioth_settings_status on_setting(
 void app_settings_init(struct golioth_client *state_client)
 {
 	client = state_client;
-	app_register_settings(client);
+	app_settings_register(client);
 }
 
 void app_settings_observe(void) {
@@ -68,8 +68,7 @@ void app_settings_observe(void) {
 		LOG_ERR("Failed to observe settings: %d", err);
 	}
 }
-
-int app_register_settings(struct golioth_client *settings_client)
+int app_settings_register(struct golioth_client *settings_client)
 {
 	int err = golioth_settings_register_callback(settings_client, on_setting);
 
