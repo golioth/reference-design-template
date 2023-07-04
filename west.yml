@@ -1,10 +1,10 @@
 manifest:
-  version: 0.7
+  version: 0.8
 
   projects:
     - name: golioth
       path: modules/lib/golioth
-      revision: 94265de33821b8046ef37fad0fb627b977e86b4f
+      revision: f01824d8f0943463ee07cb493103a63221599c79
       url: https://github.com/golioth/golioth-zephyr-sdk
       west-commands: scripts/west-commands.yml
       import:
@@ -35,5 +35,11 @@ manifest:
       path: app/src/libostentus
       revision: 5d37e4160959881932d1dd869e1d238096878cf2
       url: git@github.com:golioth/libostentus.git
+
+    - name: zephyr-network-info
+      path: app/src/network_info
+      revision: dc2fb041a00686794b827994d258eed8609525da
+      url: https://github.com/golioth/zephyr-network-info
+
   self:
     path: app
