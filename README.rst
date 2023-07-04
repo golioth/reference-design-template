@@ -88,6 +88,9 @@ Remote Procedure Call (RPC) Service
 The following RPCs can be initiated in the Remote Procedure Call menu of the
 `Golioth Console`_.
 
+``get_network_info``
+   Query and return network information.
+
 ``reboot``
    Reboot the system.
 

@@ -15,6 +15,7 @@ LOG_MODULE_REGISTER(app_rpc, LOG_LEVEL_DBG);
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/sys/reboot.h>
 
+#include "network_info.h"
 #include "app_rpc.h"
 
 static struct golioth_client *client;
@@ -34,6 +35,23 @@ static void reboot_work_handler(struct k_work *work)
 	sys_reboot(SYS_REBOOT_COLD);
 }
 K_WORK_DEFINE(reboot_work, reboot_work_handler);
+
+static enum golioth_rpc_status on_get_network_info(QCBORDecodeContext *request_params_array,
+                        QCBOREncodeContext *response_detail_map,
+                        void *callback_arg)
+{
+    QCBORError qerr;
+
+    qerr = QCBORDecode_GetError(request_params_array);
+    if (qerr != QCBOR_SUCCESS) {
+        LOG_ERR("Failed to decode array items: %d (%s)", qerr, qcbor_err_to_str(qerr));
+        return GOLIOTH_RPC_INVALID_ARGUMENT;
+    }
+
+    network_info_add_to_map(response_detail_map);
+
+    return GOLIOTH_RPC_OK;
+}
 
 static enum golioth_rpc_status on_set_log_level(QCBORDecodeContext *request_params_array,
 					   QCBOREncodeContext *response_detail_map,
@@ -95,6 +113,7 @@ static void rpc_log_if_register_failure(int err)
 int app_rpc_init(struct golioth_client *state_client)
 {
 	client = state_client;
+	network_info_init();
 	int err = app_rpc_register(client);
 	return err;
 }
@@ -110,6 +129,9 @@ int app_rpc_observe(void) {
 int app_rpc_register(struct golioth_client *rpc_client)
 {
 	int err;
+
+	err = golioth_rpc_register(rpc_client, "get_network_info", on_get_network_info, NULL);
+	rpc_log_if_register_failure(err);
 
 	err = golioth_rpc_register(rpc_client, "reboot", on_reboot, NULL);
 	rpc_log_if_register_failure(err);

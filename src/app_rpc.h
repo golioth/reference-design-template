@@ -12,6 +12,7 @@
  * indicating the success or failure of the call.
  *
  * This demonstration implements the following RPCs:
+ * - `get_network_info`: Query and return network information.
  * - `reboot`: reboot the device (no arguments)
  * - `set_log_level`: adjust the logging level for all registered modules (valid
  *   argument values: 0..4)
