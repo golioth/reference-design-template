@@ -12,9 +12,6 @@ void app_work_sensor_read(void);
 
 #define LABEL_UP_COUNTER "Counter"
 #define LABEL_DN_COUNTER "Anti-counter"
-#ifdef CONFIG_ALUDEL_BATTERY_MONITOR
-#define LABEL_BATTERY "Battery"
-#endif
 #define LABEL_FIRMWARE "Firmware"
 #define SUMMARY_TITLE "Counters:"
 
