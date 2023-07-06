@@ -9,7 +9,6 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 
 #include <net/golioth/system_client.h>
 #include <zephyr/drivers/gpio.h>
-#include <zephyr/drivers/sensor.h>
 
 #include "app_work.h"
 #include "libostentus/libostentus.h"
@@ -22,7 +21,7 @@ static struct golioth_client *client;
 /* Add Sensor structs here */
 
 /* Formatting string for sending sensor JSON to Golioth */
-#define JSON_FMT "{\"counter\":%d,\"batt_v\":%f,\"batt_lvl\":%f}"
+#define JSON_FMT "{\"counter\":%d}"
 
 /* Callback for LightDB Stream */
 static int async_error_handler(struct golioth_req_rsp *rsp)
@@ -40,16 +39,9 @@ void app_work_sensor_read(void)
 {
 	int err;
 	char json_buf[256];
-	struct sensor_value batt_v = {-1, 0};
-	struct sensor_value batt_lvl = {-1, 0};
-	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (char batt_v_str[7]; char batt_lvl_str[5];));
 
-	/* Log battery levels if possible */
 	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR,
-		   (read_battery_info(&batt_v, &batt_lvl);
-
-		    LOG_INF("Battery measurement: voltage=%.2f V, level=%d%%",
-			    sensor_value_to_double(&batt_v), batt_lvl.val1);));
+		   (if (read_battery()) LOG_ERR("Error reading battery");));
 
 	/* For this demo, we just send Hello to Golioth */
 	static uint8_t counter;
@@ -63,9 +55,7 @@ void app_work_sensor_read(void)
 
 	/* Send sensor data to Golioth */
 	/* For this demo we just fake it */
-	snprintk(json_buf, sizeof(json_buf), JSON_FMT, counter,
-		sensor_value_to_double(&batt_v),
-		sensor_value_to_double(&batt_lvl));
+	snprintk(json_buf, sizeof(json_buf), JSON_FMT, counter);
 	LOG_DBG("%s", json_buf);
 
 	err = golioth_stream_push_cb(client, "sensor",
@@ -84,12 +74,6 @@ void app_work_sensor_read(void)
 	slide_set(UP_COUNTER, json_buf, strlen(json_buf));
 	snprintk(json_buf, 6, "%d", 255-counter);
 	slide_set(DN_COUNTER, json_buf, strlen(json_buf));
-	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR,
-		   (snprintk(batt_v_str, sizeof(batt_v_str), "%.2f V",
-			     sensor_value_to_double(&batt_v));
-		    slide_set(BATTERY_V, batt_v_str, strlen(batt_v_str));
-		    snprintk(batt_lvl_str, sizeof(batt_lvl_str), "%d%%", batt_lvl.val1);
-		    slide_set(BATTERY_LVL, batt_lvl_str, strlen(batt_lvl_str));));
 
 	++counter;
 }

@@ -53,22 +53,62 @@ struct battery_level_point {
 unsigned int battery_level_pptt(unsigned int batt_mV,
 				const struct battery_level_point *curve);
 
-/**
- * @brief Read the battery voltage and estimated level
+/** A battery voltage and level measurement.
  *
- * @param batt_v measured battery voltage
- *
- * @param batt_lvl remaining battery level
- *
- * @return Error number or zero if successful
+ * Battery voltage is in mV.
+ * Battery level is in parts per ten thousand.
  */
-int read_battery_info(struct sensor_value *batt_v, struct sensor_value *batt_lvl);
+struct battery_data {
+	int battery_voltage_mv;
+	unsigned int battery_level_pptt;
+};
 
 /**
- * @brief Log the battery voltage and estimated level
+ * @brief Read the battery voltage and estimated level.
+ *
+ * @param battery_data pointer to a struct to read the battery data into.
+ *
+ * @return Error number or zero if successful.
+ */
+int read_battery_data(struct battery_data *batt_data);
+
+/**
+ * @brief Log the battery voltage and estimated level.
+ *
+ * @param battery_data battery data to log.
+ *
+ */
+void log_battery_data(struct battery_data *batt_data);
+
+/**
+ * @brief Stream battery data to Golioth.
+ *
+ * @param battery_data battery data to stream to Golioth.
  *
  * @return Error number or zero if successful
  */
-int log_battery_info(void);
+int stream_battery_data(struct battery_data *batt_data);
+
+/** Initialize battery slides.
+ *
+ * @return zero on success, or a negative error code.
+ */
+int battery_slideshow_init(void);
+
+/**
+ * @brief Display battery data.
+ *
+ * @param battery_data battery data to display.
+ *
+ * @return Error number or zero if successful
+ */
+int display_battery_data(struct battery_data *batt_data);
+
+/**
+ * @brief Read, log, stream, and display a battery measurement.
+ *
+ * @return Error number or zero if successful
+ */
+int read_battery(void);
 
 #endif /* APPLICATION_BATTERY_H_ */

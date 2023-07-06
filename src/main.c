@@ -17,6 +17,9 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include "app_work.h"
 #include "dfu/app_dfu.h"
 #include "libostentus/libostentus.h"
+#ifdef CONFIG_ALUDEL_BATTERY_MONITOR
+#include "battery_monitor/battery.h"
+#endif
 
 #include <zephyr/drivers/gpio.h>
 
@@ -212,9 +215,9 @@ void main(void)
 	 */
 	slide_add(UP_COUNTER, LABEL_UP_COUNTER, strlen(LABEL_UP_COUNTER));
 	slide_add(DN_COUNTER, LABEL_DN_COUNTER, strlen(LABEL_DN_COUNTER));
-	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR,
-		   (slide_add(BATTERY_V, LABEL_BATTERY, strlen(LABEL_BATTERY));
-		    slide_add(BATTERY_LVL, LABEL_BATTERY, strlen(LABEL_BATTERY));));
+	IF_ENABLED(
+		CONFIG_ALUDEL_BATTERY_MONITOR,
+		(if (battery_slideshow_init()) LOG_ERR("Error initializing battery slideshow");));
 	slide_add(FIRMWARE, LABEL_FIRMWARE, strlen(LABEL_FIRMWARE));
 
 	/* Set the title ofthe Ostentus summary slide (optional) */
