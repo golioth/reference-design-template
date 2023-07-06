@@ -12,6 +12,7 @@ void app_work_sensor_read(void);
 
 #define LABEL_UP_COUNTER "Counter"
 #define LABEL_DN_COUNTER "Anti-counter"
+#define LABEL_BATTERY "Battery"
 #define LABEL_FIRMWARE "Firmware"
 #define SUMMARY_TITLE "Counters:"
 

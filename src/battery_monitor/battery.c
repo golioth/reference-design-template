@@ -19,7 +19,6 @@
 
 #include "battery_monitor/battery.h"
 #include "../app_work.h"
-#include "../libostentus/libostentus.h"
 
 LOG_MODULE_REGISTER(battery, LOG_LEVEL_DBG);
 
@@ -45,6 +44,9 @@ LOG_MODULE_REGISTER(battery, LOG_LEVEL_DBG);
 
 static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 char stream_endpoint[] = "battery";
+
+char _batt_v_str[8] = "0.0 V";
+char _batt_lvl_str[5] = "none";
 
 /* Battery values specific to the Aludel-mini */
 static const struct battery_level_point batt_levels[] = {
@@ -299,11 +301,19 @@ int read_battery_data(struct battery_data *batt_data)
 	return 0;
 }
 
-void log_battery_data(struct battery_data *batt_data)
+char* get_batt_v_str(void) {
+	return _batt_v_str;
+}
+
+char* get_batt_lvl_str(void) {
+	return _batt_lvl_str;
+}
+
+void log_battery_data(void)
 {
-	LOG_INF("Battery measurement: voltage=%d.%03d V, level=%d%%",
-		batt_data->battery_voltage_mv / 1000, batt_data->battery_voltage_mv % 1000,
-		batt_data->battery_level_pptt / 100);
+	LOG_INF("Battery measurement: voltage=%s, level=%s",
+		get_batt_v_str(),
+		get_batt_lvl_str());
 }
 
 int stream_battery_data(struct battery_data *batt_data)
@@ -327,57 +337,31 @@ int stream_battery_data(struct battery_data *batt_data)
 	return 0;
 }
 
-int battery_slideshow_init(void)
-{
-	int err;
-
-	err = slide_add(BATTERY_V, LABEL_BATTERY, strlen(LABEL_BATTERY));
-	if (err) {
-		return err;
-	}
-
-	err = slide_add(BATTERY_LVL, LABEL_BATTERY, strlen(LABEL_BATTERY));
-	if (err) {
-		return err;
-	}
-
-	return 0;
-}
-
-int display_battery_data(struct battery_data *batt_data)
-{
-	char batt_v_str[7];
-	char batt_lvl_str[5];
-
-	snprintk(batt_v_str, sizeof(batt_v_str), "%d.%03d V", batt_data->battery_voltage_mv / 1000,
-		 batt_data->battery_voltage_mv % 1000);
-	snprintk(batt_lvl_str, sizeof(batt_lvl_str), "%d%%", batt_data->battery_level_pptt / 100);
-
-	slide_set(BATTERY_V, batt_v_str, strlen(batt_v_str));
-	slide_set(BATTERY_LVL, batt_lvl_str, strlen(batt_lvl_str));
-
-	return 0;
-}
-
-int read_battery(void)
+int read_and_report_battery(void)
 {
 	int err;
 	struct battery_data batt_data;
 
 	err = read_battery_data(&batt_data);
 	if (err) {
+		LOG_ERR("Error reading battery data");
 		return err;
 	}
 
-	log_battery_data(&batt_data);
+	/* Format as global string for easy access */
+	snprintk(_batt_v_str, sizeof(_batt_v_str),
+		 "%d.%03d V",
+		 batt_data.battery_voltage_mv / 1000,
+		 batt_data.battery_voltage_mv % 1000);
+	snprintk(_batt_lvl_str, sizeof(_batt_lvl_str),
+		 "%d%%",
+		 batt_data.battery_level_pptt / 100);
+
+	log_battery_data();
 
 	err = stream_battery_data(&batt_data);
 	if (err) {
-		return err;
-	}
-
-	err = display_battery_data(&batt_data);
-	if (err) {
+		LOG_ERR("Error streaming battery info");
 		return err;
 	}
 

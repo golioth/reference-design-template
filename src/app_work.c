@@ -40,8 +40,15 @@ void app_work_sensor_read(void)
 	int err;
 	char json_buf[256];
 
-	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR,
-		   (if (read_battery()) LOG_ERR("Error reading battery");));
+	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR,(
+		   read_and_report_battery();
+		   slide_set(BATTERY_V,
+			     get_batt_v_str(),
+			     strlen(get_batt_v_str()));
+		   slide_set(BATTERY_LVL,
+			     get_batt_lvl_str(),
+			     strlen(get_batt_lvl_str()));
+		   ));
 
 	/* For this demo, we just send Hello to Golioth */
 	static uint8_t counter;

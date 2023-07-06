@@ -63,6 +63,27 @@ struct battery_data {
 	unsigned int battery_level_pptt;
 };
 
+
+/**
+ * @brief Get pointer to a string representation of the last read battery
+ * voltage.
+ *
+ * This string is generated each time read_and_report_battery() is called.
+ *
+ * @return Pointer to character array
+ */
+char* get_batt_v_str(void);
+
+/**
+ * @brief Get pointer to a string representation of the last read percentage
+ * level. If a level has not yet been read, this value will be `none`.
+ *
+ * This string is generated each time read_and_report_battery() is called.
+ *
+ * @return Pointer to character array
+ */
+char* get_batt_lvl_str(void);
+
 /**
  * @brief Read the battery voltage and estimated level.
  *
@@ -78,7 +99,7 @@ int read_battery_data(struct battery_data *batt_data);
  * @param battery_data battery data to log.
  *
  */
-void log_battery_data(struct battery_data *batt_data);
+void log_battery_data(void);
 
 /**
  * @brief Stream battery data to Golioth.
@@ -89,26 +110,11 @@ void log_battery_data(struct battery_data *batt_data);
  */
 int stream_battery_data(struct battery_data *batt_data);
 
-/** Initialize battery slides.
- *
- * @return zero on success, or a negative error code.
- */
-int battery_slideshow_init(void);
-
-/**
- * @brief Display battery data.
- *
- * @param battery_data battery data to display.
- *
- * @return Error number or zero if successful
- */
-int display_battery_data(struct battery_data *batt_data);
-
 /**
  * @brief Read, log, stream, and display a battery measurement.
  *
  * @return Error number or zero if successful
  */
-int read_battery(void);
+int read_and_report_battery(void);
 
 #endif /* APPLICATION_BATTERY_H_ */
