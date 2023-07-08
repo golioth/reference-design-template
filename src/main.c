@@ -8,9 +8,7 @@
 LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 
 #include <modem/lte_lc.h>
-#ifdef CONFIG_MODEM_INFO
-#include <modem/modem_info.h>
-#endif
+#include <network_info.h>
 #include <net/golioth/system_client.h>
 #include <samples/common/net_connect.h>
 #include <zephyr/net/coap.h>
@@ -128,21 +126,15 @@ void main(void)
 {
 	int err;
 
-	LOG_DBG("Start Reference Design Template app");
+	LOG_DBG("Start Reference Design Template sample");
 
-	#ifdef CONFIG_MODEM_INFO
-	char sbuf[128];
+	/* Initialize network info */
+	network_info_init();
 
-	/* Initialize modem info */
-	err = modem_info_init();
-	if (err) {
-		LOG_ERR("Failed to initialize modem info: %d", err);
-	}
-
+#ifdef CONFIG_MODEM_INFO
 	/* Log modem firmware version */
-	modem_info_string_get(MODEM_INFO_FW_VERSION, sbuf, sizeof(sbuf));
-	LOG_INF("Modem firmware version: %s", sbuf);
-	#endif
+	modem_info_log_fw_version();
+#endif
 
 	/* Log app firmware version */
 	LOG_INF("App firmware version: %s", CONFIG_MCUBOOT_IMAGE_VERSION);
