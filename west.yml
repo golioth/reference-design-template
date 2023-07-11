@@ -28,7 +28,7 @@ manifest:
 
     - name: golioth-zephyr-boards
       path: app/golioth-boards
-      revision: 16dd0ef2d13a8e95ba923ee014424f5a3f1009cf
+      revision: 0a0a27dc2facc4245be0d15b9b36ce526cbf9262
       url: git@github.com:golioth/golioth-zephyr-boards.git
 
     - name: libostentus
