@@ -69,7 +69,7 @@ Golioth Features
 ****************
 
 This app currently implements Over-the-Air (OTA) firmware updates, Settings
-Service, Logging, and RPC.
+Service, Logging, RPC, and both LightDB State and LightDB Stream data.
 
 Settings Service
 ================
@@ -105,6 +105,32 @@ The following RPCs can be initiated in the Remote Procedure Call menu of the
    * ``2``: ``LOG_LEVEL_WRN``
    * ``3``: ``LOG_LEVEL_INF``
    * ``4``: ``LOG_LEVEL_DBG``
+
+LightDB State and LightDB Stream data
+=====================================
+
+Time-Series Data (LightDB Stream)
+---------------------------------
+
+An upcounting timer is periodicaly sent to the `sensor/counter` endpoint of the
+LightDB Stream service to simulate sensor data. If your board includes a
+battery, voltage and level readings will be sent to the `battery` endpoint.
+
+Stateful Data (LightDB State)
+-----------------------------
+
+The concept of Digital Twin is demonstrated with the LightDB State
+`example_int0` and `example_int1` variables that are members of the `desired`
+and `actual` endpoints.
+
+* `desired` values may be changed from the cloud side. The device will recognize
+  these, validate them for [0..65535] bounding, and then reset these endpoints
+  to `-1`
+
+* `actual` values will be updated by the device whenever a valid value is
+  received from the `desired` endpoints. The cloud may read the `actual`
+  endpoints to determine device status, but only the device should ever write to
+  the `actual` endpoints.
 
 Further Information in Header Files
 ===================================
