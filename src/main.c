@@ -23,6 +23,10 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 
 #include <zephyr/drivers/gpio.h>
 
+#ifdef CONFIG_MODEM_INFO
+#include <modem/modem_info.h>
+#endif
+
 static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 
 K_SEM_DEFINE(connected, 0, 1);
@@ -92,6 +96,22 @@ static void lte_handler(const struct lte_lc_evt *const evt)
 	}
 }
 
+#ifdef CONFIG_MODEM_INFO
+static void log_modem_firmware_version(void) {
+	char sbuf[128];
+
+	/* Initialize modem info */
+	int err = modem_info_init();
+	if (err) {
+		LOG_ERR("Failed to initialize modem info: %d", err);
+	}
+
+	/* Log modem firmware version */
+	modem_info_string_get(MODEM_INFO_FW_VERSION, sbuf, sizeof(sbuf));
+	LOG_INF("Modem firmware version: %s", sbuf);
+}
+#endif
+
 void button_pressed(const struct device *dev, struct gpio_callback *cb,
 					uint32_t pins)
 {
@@ -125,6 +145,7 @@ void main(void)
 	LOG_DBG("Start Reference Design Template sample");
 
 	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMAGE_VERSION);
+	IF_ENABLED(CONFIG_MODEM_INFO, (log_modem_firmware_version();));
 
 	/* Update Ostentus LEDS using bitmask (Power On and Battery)*/
 	led_bitmask(LED_POW | LED_BAT);
