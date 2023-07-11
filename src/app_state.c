@@ -47,7 +47,7 @@ int app_state_reset_desired(void)
 			APP_STATE_DESIRED_ENDP
 			);
 
-	char sbuf[strlen(DEVICE_STATE_FMT)+8]; /* small bit of extra space */
+	char sbuf[sizeof(DEVICE_STATE_FMT)+4]; /* space for two "-1" values */
 
 	snprintk(sbuf, sizeof(sbuf), DEVICE_STATE_FMT, -1, -1);
 
@@ -65,7 +65,7 @@ int app_state_reset_desired(void)
 int app_state_update_actual(void)
 {
 
-	char sbuf[strlen(DEVICE_STATE_FMT)+8]; /* small bit of extra space */
+	char sbuf[sizeof(DEVICE_STATE_FMT)+10]; /* space for uint16 values */
 
 	snprintk(sbuf, sizeof(sbuf), DEVICE_STATE_FMT, _example_int0, _example_int1);
 
@@ -110,7 +110,7 @@ int app_state_desired_handler(struct golioth_req_rsp *rsp)
 
 	if (ret & 1<<0) {
 		/* Process example_int0 */
-		if ((parsed_state.example_int0 >= 0) && (parsed_state.example_int0 < 10000)) {
+		if ((parsed_state.example_int0 >= 0) && (parsed_state.example_int0 < 65536)) {
 			LOG_DBG("Validated desired example_int0 value: %d", parsed_state.example_int0);
 			if (_example_int0 != parsed_state.example_int0) {
 				_example_int0 = parsed_state.example_int0;
@@ -126,12 +126,13 @@ int app_state_desired_handler(struct golioth_req_rsp *rsp)
 	}
 	if (ret & 1<<1) {
 		/* Process example_int1 */
-		if ((parsed_state.example_int1 >= 0) && (parsed_state.example_int1 < 10000)) {
+		if ((parsed_state.example_int1 >= 0) && (parsed_state.example_int1 < 65536)) {
 			LOG_DBG("Validated desired example_int1 value: %d", parsed_state.example_int1);
 			if (_example_int1 != parsed_state.example_int1) {
 				_example_int1 = parsed_state.example_int1;
 				++state_change_count;
 			}
+			++desired_processed_count;
 		} else if (parsed_state.example_int1 == -1) {
 			LOG_DBG("No change requested for example_int1");
 		} else {
