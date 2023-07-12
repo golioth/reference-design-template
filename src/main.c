@@ -51,6 +51,7 @@ void wake_system_thread(void) {
 static void golioth_on_connect(struct golioth_client *client)
 {
 	k_sem_give(&connected);
+	golioth_connection_led_set(1);
 
 	LOG_INF("Registering observations with Golioth");
 	app_dfu_observe();

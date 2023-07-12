@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.1] - TBD
 
 ### Fixed
+- Turn Golioth LED on when connected
 - Desired endpoints will be correctly reset when example_int1 is changed by itself
 
 ## [1.0.0] - 2023-07-11
