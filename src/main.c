@@ -97,11 +97,13 @@ static void lte_handler(const struct lte_lc_evt *const evt)
 }
 
 #ifdef CONFIG_MODEM_INFO
-static void log_modem_firmware_version(void) {
+static void log_modem_firmware_version(void)
+{
 	char sbuf[128];
 
 	/* Initialize modem info */
 	int err = modem_info_init();
+
 	if (err) {
 		LOG_ERR("Failed to initialize modem info: %d", err);
 	}
