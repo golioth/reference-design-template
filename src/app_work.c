@@ -40,7 +40,7 @@ void app_work_sensor_read(void)
 	int err;
 	char json_buf[256];
 
-	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR,(
+	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
 		   read_and_report_battery();
 		   slide_set(BATTERY_V,
 			     get_batt_v_str(),

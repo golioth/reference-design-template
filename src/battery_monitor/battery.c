@@ -276,6 +276,7 @@ int read_battery_data(struct battery_data *batt_data)
 
 	/* Turn on the voltage divider circuit */
 	int err = battery_measure_enable(true);
+
 	if (err) {
 		LOG_ERR("Failed to enable battery measurement power: %d", err);
 		return err;
@@ -283,6 +284,7 @@ int read_battery_data(struct battery_data *batt_data)
 
 	/* Read the battery voltage */
 	int batt_mv = battery_sample();
+
 	if (batt_mv < 0) {
 		LOG_ERR("Failed to read battery voltage: %d", batt_mv);
 		return batt_mv;
@@ -301,11 +303,13 @@ int read_battery_data(struct battery_data *batt_data)
 	return 0;
 }
 
-char* get_batt_v_str(void) {
+char *get_batt_v_str(void)
+{
 	return _batt_v_str;
 }
 
-char* get_batt_lvl_str(void) {
+char *get_batt_lvl_str(void)
+{
 	return _batt_lvl_str;
 }
 
