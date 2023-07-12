@@ -173,4 +173,3 @@ int app_state_observe(void)
 
 	return err;
 }
-

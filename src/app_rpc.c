@@ -29,7 +29,7 @@ static void reboot_work_handler(struct k_work *work)
 		k_sleep(K_SECONDS(1));
 	}
 
-	/* Sync longs before reboot */
+	/* Sync logs before reboot */
 	LOG_PANIC();
 
 	sys_reboot(SYS_REBOOT_COLD);
