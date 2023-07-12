@@ -136,10 +136,9 @@ custom hardware to which they apply, you can safely remove these repositories
 from ``west.yml`` and remove the includes/function calls from the C code.
 
 * `golioth-zephyr-boards`_ includes the board definitions for the Golioth
-Aludel-Mini
+  Aludel-Mini
 * `libostentus`_ is a helper library for controlling the Ostentus ePaper
   faceplate
-
 
 .. _Golioth Console: https://console.golioth.io
 .. _Nordic nRF9160 DK: https://www.nordicsemi.com/Products/Development-hardware/nrf9160-dk

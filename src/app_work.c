@@ -89,4 +89,3 @@ void app_work_init(struct golioth_client *work_client)
 {
 	client = work_client;
 }
-
