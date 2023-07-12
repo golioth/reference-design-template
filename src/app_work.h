@@ -9,7 +9,7 @@
 
 #include <net/golioth/system_client.h>
 
-/** The `app_word.c` file performs the important work of this application which
+/** The `app_work.c` file performs the important work of this application which
  * is to read sensor values and report them to the Golioth LightDB Stream as
  * time-series data.
  *
