@@ -1,3 +1,6 @@
+<!-- Copyright (c) 2023 Golioth, Inc. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # Contributor Covenant Code of Conduct
 
 ## Our Pledge
