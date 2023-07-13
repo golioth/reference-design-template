@@ -112,25 +112,25 @@ LightDB State and LightDB Stream data
 Time-Series Data (LightDB Stream)
 ---------------------------------
 
-An upcounting timer is periodicaly sent to the `sensor/counter` endpoint of the
+An upcounting timer is periodicaly sent to the ``sensor/counter`` endpoint of the
 LightDB Stream service to simulate sensor data. If your board includes a
-battery, voltage and level readings will be sent to the `battery` endpoint.
+battery, voltage and level readings will be sent to the ``battery`` endpoint.
 
 Stateful Data (LightDB State)
 -----------------------------
 
 The concept of Digital Twin is demonstrated with the LightDB State
-`example_int0` and `example_int1` variables that are members of the `desired`
-and `actual` endpoints.
+``example_int0`` and ``example_int1`` variables that are members of the ``desired``
+and ``actual`` endpoints.
 
-* `desired` values may be changed from the cloud side. The device will recognize
+* ``desired`` values may be changed from the cloud side. The device will recognize
   these, validate them for [0..65535] bounding, and then reset these endpoints
-  to `-1`
+  to ``-1``
 
-* `actual` values will be updated by the device whenever a valid value is
-  received from the `desired` endpoints. The cloud may read the `actual`
+* ``actual`` values will be updated by the device whenever a valid value is
+  received from the ``desired`` endpoints. The cloud may read the ``actual``
   endpoints to determine device status, but only the device should ever write to
-  the `actual` endpoints.
+  the ``actual`` endpoints.
 
 Further Information in Header Files
 ===================================
