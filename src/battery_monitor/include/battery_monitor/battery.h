@@ -48,8 +48,7 @@ struct battery_level_point {
  * @return the estimated remaining capacity in parts per ten
  * thousand.
  */
-unsigned int battery_level_pptt(unsigned int batt_mV,
-				const struct battery_level_point *curve);
+unsigned int battery_level_pptt(unsigned int batt_mV, const struct battery_level_point *curve);
 
 /** A battery voltage and level measurement.
  *
@@ -60,7 +59,6 @@ struct battery_data {
 	int battery_voltage_mv;
 	unsigned int battery_level_pptt;
 };
-
 
 /**
  * @brief Get pointer to a string representation of the last read battery

@@ -21,9 +21,7 @@ int32_t get_loop_delay_s(void)
 	return _loop_delay_s;
 }
 
-enum golioth_settings_status on_setting(
-		const char *key,
-		const struct golioth_settings_value *value)
+enum golioth_settings_status on_setting(const char *key, const struct golioth_settings_value *value)
 {
 
 	LOG_DBG("Received setting: key = %s, type = %d", key, value->type);
@@ -63,7 +61,8 @@ int app_settings_init(struct golioth_client *state_client)
 	return err;
 }
 
-int app_settings_observe(void) {
+int app_settings_observe(void)
+{
 	int err = golioth_settings_observe(client);
 	if (err) {
 		LOG_ERR("Failed to observe settings: %d", err);

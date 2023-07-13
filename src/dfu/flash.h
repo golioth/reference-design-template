@@ -32,16 +32,15 @@ static inline int flash_img_prepare(struct flash_img_context *flash)
 	return 0;
 }
 
-static inline
-int flash_img_buffered_write(struct flash_img_context *ctx, const uint8_t *data,
-			     size_t len, bool flush)
+static inline int flash_img_buffered_write(struct flash_img_context *ctx, const uint8_t *data,
+					   size_t len, bool flush)
 {
 	return 0;
 }
 
 /** Boot upgrade request modes */
-#define BOOT_UPGRADE_TEST       0
-#define BOOT_UPGRADE_PERMANENT  1
+#define BOOT_UPGRADE_TEST      0
+#define BOOT_UPGRADE_PERMANENT 1
 
 static inline int boot_request_upgrade(int permanent)
 {

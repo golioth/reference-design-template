@@ -40,15 +40,10 @@ void app_work_sensor_read(void)
 	int err;
 	char json_buf[256];
 
-	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
-		   read_and_report_battery();
-		   slide_set(BATTERY_V,
-			     get_batt_v_str(),
-			     strlen(get_batt_v_str()));
-		   slide_set(BATTERY_LVL,
-			     get_batt_lvl_str(),
-			     strlen(get_batt_lvl_str()));
-		   ));
+	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR,
+		   (read_and_report_battery();
+		    slide_set(BATTERY_V, get_batt_v_str(), strlen(get_batt_v_str()));
+		    slide_set(BATTERY_LVL, get_batt_lvl_str(), strlen(get_batt_lvl_str()));));
 
 	/* For this demo, we just send Hello to Golioth */
 	static uint8_t counter;
@@ -65,10 +60,8 @@ void app_work_sensor_read(void)
 	snprintk(json_buf, sizeof(json_buf), JSON_FMT, counter);
 	LOG_DBG("%s", json_buf);
 
-	err = golioth_stream_push_cb(client, "sensor",
-			GOLIOTH_CONTENT_FORMAT_APP_JSON,
-			json_buf, strlen(json_buf),
-			async_error_handler, NULL);
+	err = golioth_stream_push_cb(client, "sensor", GOLIOTH_CONTENT_FORMAT_APP_JSON, json_buf,
+				     strlen(json_buf), async_error_handler, NULL);
 	if (err) {
 		LOG_ERR("Failed to send sensor data to Golioth: %d", err);
 	}
@@ -79,7 +72,7 @@ void app_work_sensor_read(void)
 	 */
 	snprintk(json_buf, sizeof(json_buf), "%d", counter);
 	slide_set(UP_COUNTER, json_buf, strlen(json_buf));
-	snprintk(json_buf, sizeof(json_buf), "%d", 255-counter);
+	snprintk(json_buf, sizeof(json_buf), "%d", 255 - counter);
 	slide_set(DN_COUNTER, json_buf, strlen(json_buf));
 
 	++counter;

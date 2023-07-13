@@ -27,9 +27,9 @@ void app_work_sensor_read(void);
 
 #define LABEL_UP_COUNTER "Counter"
 #define LABEL_DN_COUNTER "Anti-counter"
-#define LABEL_BATTERY "Battery"
-#define LABEL_FIRMWARE "Firmware"
-#define SUMMARY_TITLE "Counters:"
+#define LABEL_BATTERY	 "Battery"
+#define LABEL_FIRMWARE	 "Firmware"
+#define SUMMARY_TITLE	 "Counters:"
 
 /**
  * Each Ostentus slide needs a unique key. You may add additional slides by
@@ -38,10 +38,10 @@ void app_work_sensor_read(void);
 typedef enum {
 	UP_COUNTER,
 	DN_COUNTER,
-	#ifdef CONFIG_ALUDEL_BATTERY_MONITOR
+#ifdef CONFIG_ALUDEL_BATTERY_MONITOR
 	BATTERY_V,
 	BATTERY_LVL,
-	#endif
+#endif
 	FIRMWARE
 } slide_key;
 
