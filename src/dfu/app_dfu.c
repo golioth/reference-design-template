@@ -17,16 +17,15 @@ LOG_MODULE_REGISTER(app_dfu, LOG_LEVEL_DBG);
 
 #include "flash.h"
 
-#define REBOOT_DELAY_SEC	1
+#define REBOOT_DELAY_SEC 1
 
 K_SEM_DEFINE(sem_downloading, 0, 1);
 K_SEM_DEFINE(sem_downloaded, 0, 1);
 
-#define DFU_STACK	2048
+#define DFU_STACK 2048
 extern void dfu_thread(void *d0, void *d1, void *d2);
-K_THREAD_DEFINE(dfu_tid, DFU_STACK,
-			dfu_thread, NULL, NULL, NULL,
-			K_LOWEST_APPLICATION_THREAD_PRIO, 0, 0);
+K_THREAD_DEFINE(dfu_tid, DFU_STACK, dfu_thread, NULL, NULL, NULL, K_LOWEST_APPLICATION_THREAD_PRIO,
+		0, 0);
 
 static struct golioth_client *client;
 
@@ -39,36 +38,28 @@ struct dfu_ctx {
 static struct dfu_ctx update_ctx;
 static enum golioth_dfu_result dfu_initial_result = GOLIOTH_DFU_RESULT_INITIAL;
 
-extern void dfu_thread(void *d0, void *d1, void *d2) {
+extern void dfu_thread(void *d0, void *d1, void *d2)
+{
 	int err;
 
 	k_sem_take(&sem_downloading, K_FOREVER);
 
-	err = golioth_fw_report_state(client, "main",
-				      current_version_str,
-				      update_ctx.version,
-				      GOLIOTH_FW_STATE_DOWNLOADING,
-				      GOLIOTH_DFU_RESULT_INITIAL);
+	err = golioth_fw_report_state(client, "main", current_version_str, update_ctx.version,
+				      GOLIOTH_FW_STATE_DOWNLOADING, GOLIOTH_DFU_RESULT_INITIAL);
 	if (err) {
 		LOG_ERR("Failed to update to '%s' state: %d", "downloading", err);
 	}
 
 	k_sem_take(&sem_downloaded, K_FOREVER);
 
-	err = golioth_fw_report_state(client, "main",
-				      current_version_str,
-				      update_ctx.version,
-				      GOLIOTH_FW_STATE_DOWNLOADED,
-				      GOLIOTH_DFU_RESULT_INITIAL);
+	err = golioth_fw_report_state(client, "main", current_version_str, update_ctx.version,
+				      GOLIOTH_FW_STATE_DOWNLOADED, GOLIOTH_DFU_RESULT_INITIAL);
 	if (err) {
 		LOG_ERR("Failed to update to '%s' state: %d", "downloaded", err);
 	}
 
-	err = golioth_fw_report_state(client, "main",
-				      current_version_str,
-				      update_ctx.version,
-				      GOLIOTH_FW_STATE_UPDATING,
-				      GOLIOTH_DFU_RESULT_INITIAL);
+	err = golioth_fw_report_state(client, "main", current_version_str, update_ctx.version,
+				      GOLIOTH_FW_STATE_UPDATING, GOLIOTH_DFU_RESULT_INITIAL);
 	if (err) {
 		LOG_ERR("Failed to update to '%s' state: %d", "updating", err);
 	}
@@ -102,8 +93,7 @@ static int data_received(struct golioth_req_rsp *rsp)
 		return 0;
 	}
 
-	LOG_DBG("Received %zu bytes at offset %zu%s", rsp->len, rsp->off,
-		last ? " (last)" : "");
+	LOG_DBG("Received %zu bytes at offset %zu%s", rsp->len, rsp->off, last ? " (last)" : "");
 
 	if (rsp->off == 0) {
 		err = flash_img_prepare(&dfu->flash);
@@ -164,9 +154,8 @@ static int golioth_desired_update(struct golioth_req_rsp *rsp)
 		return 0;
 	}
 
-	err = golioth_fw_desired_parse(rsp->data, rsp->len,
-				       dfu->version, &version_len,
-				       uri, &uri_len);
+	err = golioth_fw_desired_parse(rsp->data, rsp->len, dfu->version, &version_len, uri,
+				       &uri_len);
 	switch (err) {
 	case 0:
 		break;
@@ -201,7 +190,8 @@ static int golioth_desired_update(struct golioth_req_rsp *rsp)
 	return 0;
 }
 
-void app_dfu_init(struct golioth_client* dfu_client) {
+void app_dfu_init(struct golioth_client *dfu_client)
+{
 	int err;
 
 	client = dfu_client;
@@ -222,20 +212,18 @@ void app_dfu_init(struct golioth_client* dfu_client) {
 	}
 }
 
-void app_dfu_observe(void) {
+void app_dfu_observe(void)
+{
 	int err = golioth_fw_observe_desired(client, golioth_desired_update, &update_ctx);
 	if (err) {
 		LOG_ERR("Failed to start observation of desired FW: %d", err);
 	}
 }
 
-void app_dfu_report_state_to_golioth(void) {
-	int err = golioth_fw_report_state_cb(client, "main",
-				      current_version_str,
-				      NULL,
-				      GOLIOTH_FW_STATE_IDLE,
-				      dfu_initial_result,
-				      NULL, NULL);
+void app_dfu_report_state_to_golioth(void)
+{
+	int err = golioth_fw_report_state_cb(client, "main", current_version_str, NULL,
+					     GOLIOTH_FW_STATE_IDLE, dfu_initial_result, NULL, NULL);
 	if (err) {
 		LOG_ERR("Failed to report firmware state: %d", err);
 	}

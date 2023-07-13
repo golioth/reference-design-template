@@ -37,25 +37,25 @@ static void reboot_work_handler(struct k_work *work)
 K_WORK_DEFINE(reboot_work, reboot_work_handler);
 
 static enum golioth_rpc_status on_get_network_info(QCBORDecodeContext *request_params_array,
-                        QCBOREncodeContext *response_detail_map,
-                        void *callback_arg)
+						   QCBOREncodeContext *response_detail_map,
+						   void *callback_arg)
 {
-    QCBORError qerr;
+	QCBORError qerr;
 
-    qerr = QCBORDecode_GetError(request_params_array);
-    if (qerr != QCBOR_SUCCESS) {
-        LOG_ERR("Failed to decode array items: %d (%s)", qerr, qcbor_err_to_str(qerr));
-        return GOLIOTH_RPC_INVALID_ARGUMENT;
-    }
+	qerr = QCBORDecode_GetError(request_params_array);
+	if (qerr != QCBOR_SUCCESS) {
+		LOG_ERR("Failed to decode array items: %d (%s)", qerr, qcbor_err_to_str(qerr));
+		return GOLIOTH_RPC_INVALID_ARGUMENT;
+	}
 
-    network_info_add_to_map(response_detail_map);
+	network_info_add_to_map(response_detail_map);
 
-    return GOLIOTH_RPC_OK;
+	return GOLIOTH_RPC_OK;
 }
 
 static enum golioth_rpc_status on_set_log_level(QCBORDecodeContext *request_params_array,
-					   QCBOREncodeContext *response_detail_map,
-					   void *callback_arg)
+						QCBOREncodeContext *response_detail_map,
+						void *callback_arg)
 {
 	double a;
 	uint32_t log_level;
@@ -94,8 +94,8 @@ static enum golioth_rpc_status on_set_log_level(QCBORDecodeContext *request_para
 }
 
 static enum golioth_rpc_status on_reboot(QCBORDecodeContext *request_params_array,
-					   QCBOREncodeContext *response_detail_map,
-					   void *callback_arg)
+					 QCBOREncodeContext *response_detail_map,
+					 void *callback_arg)
 {
 	/* Use work queue so this RPC can return confirmation to Golioth */
 	k_work_submit(&reboot_work);
@@ -118,7 +118,8 @@ int app_rpc_init(struct golioth_client *state_client)
 	return err;
 }
 
-int app_rpc_observe(void) {
+int app_rpc_observe(void)
+{
 	int err = golioth_rpc_observe(client);
 	if (err) {
 		LOG_ERR("Failed to observe RPC: %d", err);

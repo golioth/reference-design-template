@@ -22,7 +22,7 @@
 
 LOG_MODULE_REGISTER(battery, LOG_LEVEL_DBG);
 
-#define VBATT DT_PATH(vbatt)
+#define VBATT	    DT_PATH(vbatt)
 #define ZEPHYR_USER DT_PATH(zephyr_user)
 
 /* Formatting string for sending battery JSON to Golioth */
@@ -84,16 +84,18 @@ struct divider_config {
 
 static const struct divider_config divider_config = {
 #if DT_NODE_HAS_STATUS(VBATT, okay)
+	/* clang-format off */
 	.io_channel = {
 		DT_IO_CHANNELS_INPUT(VBATT),
-	},
+	}, /* clang-format on */
 	.power_gpios = GPIO_DT_SPEC_GET_OR(VBATT, power_gpios, {}),
 	.output_ohm = DT_PROP(VBATT, output_ohms),
 	.full_ohm = DT_PROP(VBATT, full_ohms),
-#else /* /vbatt exists */
+#else  /* /vbatt exists */
+	/* clang-format off */
 	.io_channel = {
 		DT_IO_CHANNELS_INPUT(ZEPHYR_USER),
-	},
+	}, /* clang-format on */
 #endif /* /vbatt exists */
 };
 
@@ -133,8 +135,7 @@ static int divider_setup(void)
 		}
 		rc = gpio_pin_configure_dt(gcp, GPIO_OUTPUT_INACTIVE);
 		if (rc != 0) {
-			LOG_ERR("Failed to control feed %s.%u: %d",
-				gcp->port->name, gcp->pin, rc);
+			LOG_ERR("Failed to control feed %s.%u: %d", gcp->port->name, gcp->pin, rc);
 			return rc;
 		}
 	}
@@ -155,8 +156,7 @@ static int divider_setup(void)
 	};
 
 	if (cfg->output_ohm != 0) {
-		accp->input_positive = SAADC_CH_PSELP_PSELP_AnalogInput0
-			+ iocp->channel;
+		accp->input_positive = SAADC_CH_PSELP_PSELP_AnalogInput0 + iocp->channel;
 	} else {
 		accp->input_positive = SAADC_CH_PSELP_PSELP_VDD;
 	}
@@ -223,16 +223,12 @@ int battery_sample(void)
 		if (rc == 0) {
 			int32_t val = ddp->raw;
 
-			adc_raw_to_millivolts(adc_ref_internal(ddp->adc),
-					      ddp->adc_cfg.gain,
-					      sp->resolution,
-					      &val);
+			adc_raw_to_millivolts(adc_ref_internal(ddp->adc), ddp->adc_cfg.gain,
+					      sp->resolution, &val);
 
 			if (dcp->output_ohm != 0) {
-				rc = val * (uint64_t)dcp->full_ohm
-					/ dcp->output_ohm;
-				LOG_DBG("raw %u ~ %u mV => %d mV",
-					ddp->raw, val, rc);
+				rc = val * (uint64_t)dcp->full_ohm / dcp->output_ohm;
+				LOG_DBG("raw %u ~ %u mV => %d mV", ddp->raw, val, rc);
 			} else {
 				rc = val;
 				LOG_DBG("raw %u ~ %u mV", ddp->raw, val);
@@ -243,8 +239,7 @@ int battery_sample(void)
 	return rc;
 }
 
-unsigned int battery_level_pptt(unsigned int batt_mV,
-				const struct battery_level_point *curve)
+unsigned int battery_level_pptt(unsigned int batt_mV, const struct battery_level_point *curve)
 {
 	const struct battery_level_point *pb = curve;
 
@@ -253,8 +248,7 @@ unsigned int battery_level_pptt(unsigned int batt_mV,
 		return pb->lvl_pptt;
 	}
 	/* Go down to the last point at or below the measured voltage. */
-	while ((pb->lvl_pptt > 0)
-	       && (batt_mV < pb->lvl_mV)) {
+	while ((pb->lvl_pptt > 0) && (batt_mV < pb->lvl_mV)) {
 		++pb;
 	}
 	if (batt_mV < pb->lvl_mV) {
@@ -265,10 +259,8 @@ unsigned int battery_level_pptt(unsigned int batt_mV,
 	/* Linear interpolation between below and above points. */
 	const struct battery_level_point *pa = pb - 1;
 
-	return pb->lvl_pptt
-	       + ((pa->lvl_pptt - pb->lvl_pptt)
-		  * (batt_mV - pb->lvl_mV)
-		  / (pa->lvl_mV - pb->lvl_mV));
+	return pb->lvl_pptt +
+	       ((pa->lvl_pptt - pb->lvl_pptt) * (batt_mV - pb->lvl_mV) / (pa->lvl_mV - pb->lvl_mV));
 }
 
 int read_battery_data(struct battery_data *batt_data)
@@ -315,9 +307,7 @@ char *get_batt_lvl_str(void)
 
 void log_battery_data(void)
 {
-	LOG_INF("Battery measurement: voltage=%s, level=%s",
-		get_batt_v_str(),
-		get_batt_lvl_str());
+	LOG_INF("Battery measurement: voltage=%s, level=%s", get_batt_v_str(), get_batt_lvl_str());
 }
 
 int stream_battery_data(struct battery_data *batt_data)
@@ -353,13 +343,9 @@ int read_and_report_battery(void)
 	}
 
 	/* Format as global string for easy access */
-	snprintk(_batt_v_str, sizeof(_batt_v_str),
-		 "%d.%03d V",
-		 batt_data.battery_voltage_mv / 1000,
+	snprintk(_batt_v_str, sizeof(_batt_v_str), "%d.%03d V", batt_data.battery_voltage_mv / 1000,
 		 batt_data.battery_voltage_mv % 1000);
-	snprintk(_batt_lvl_str, sizeof(_batt_lvl_str),
-		 "%d%%",
-		 batt_data.battery_level_pptt / 100);
+	snprintk(_batt_lvl_str, sizeof(_batt_lvl_str), "%d%%", batt_data.battery_level_pptt / 100);
 
 	log_battery_data();
 
