@@ -77,9 +77,9 @@ void app_work_sensor_read(void)
 	 *  -values should be sent as strings
 	 *  -use the enum from app_work.h for slide key values
 	 */
-	snprintk(json_buf, 6, "%d", counter);
+	snprintk(json_buf, sizeof(json_buf), "%d", counter);
 	slide_set(UP_COUNTER, json_buf, strlen(json_buf));
-	snprintk(json_buf, 6, "%d", 255-counter);
+	snprintk(json_buf, sizeof(json_buf), "%d", 255-counter);
 	slide_set(DN_COUNTER, json_buf, strlen(json_buf));
 
 	++counter;
