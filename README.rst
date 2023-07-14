@@ -177,13 +177,17 @@ Fork this template to create your own Reference Design. After checking out your 
 the following workflow to pull in future changes:
 
 * Setup
+
   * Create a ``template`` remote based on the Reference Design Template repository
+
 * Merge in template changes
+
   * Fetch template changes and tags
   * Merge template release tag into your ``main`` (or other branch)
   * Resolve merge conflicts (if any) and commit to your repository
 
 .. code-block:: console
+
    # Setup
    git remote add template https://github.com/golioth/reference-design-template.git
    git fetch template --tags
