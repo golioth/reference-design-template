@@ -85,11 +85,11 @@ static enum golioth_rpc_status on_set_log_level(QCBORDecodeContext *request_para
 			break;
 		}
 
-		LOG_WRN("Settings %s log level to: %d", source_name, log_level);
 		log_filter_set(NULL, 0, source_id, log_level);
 		++source_id;
 	}
 
+	LOG_WRN("Log levels for %d modules set to: %d", source_id, log_level);
 	return GOLIOTH_RPC_OK;
 }
 
