@@ -22,7 +22,7 @@ set up your local workspace.
 Install the Python virtual environment (recommended)
 ====================================================
 
-.. code-block:: console
+.. code-block:: shell
 
    cd ~
    mkdir golioth-reference-design-template
@@ -33,7 +33,7 @@ Install the Python virtual environment (recommended)
 Use ``west`` to initialize and install
 ======================================
 
-.. code-block:: console
+.. code-block:: shell
 
    cd ~/golioth-reference-design-template
    west init -m git@github.com:golioth/reference-design-template.git .
@@ -47,7 +47,7 @@ Building the application
 Build Zephyr sample application for Golioth Aludel-Mini
 (``aludel_mini_v1_sparkfun9160_ns``) from the top level of your project. After a
 successful build you will see a new ``build`` directory. Note that any changes
-(and git commmits) to the project itself will be inside the ``app`` folder. The
+(and git commits) to the project itself will be inside the ``app`` folder. The
 ``build`` and ``deps`` directories being one level higher prevents the repo from
 cataloging all of the changes to the dependencies and the build (so no
 ``.gitignore`` is needed)
@@ -55,7 +55,7 @@ cataloging all of the changes to the dependencies and the build (so no
 During building, replace ``<your.semantic.version>`` to utilize the DFU
 functionality on this Reference Design.
 
-.. code-block:: console
+.. code-block:: text
 
    $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"<your.semantic.version>\"
    $ (.venv) west flash
@@ -63,7 +63,7 @@ functionality on this Reference Design.
 Configure PSK-ID and PSK using the device shell based on your Golioth
 credentials and reboot:
 
-.. code-block:: console
+.. code-block:: text
 
    uart:~$ settings set golioth/psk-id <my-psk-id@my-project>
    uart:~$ settings set golioth/psk <my-psk>
@@ -116,7 +116,7 @@ LightDB State and LightDB Stream data
 Time-Series Data (LightDB Stream)
 ---------------------------------
 
-An upcounting timer is periodicaly sent to the ``sensor/counter`` endpoint of the
+An up-counting timer is periodically sent to the ``sensor/counter`` endpoint of the
 LightDB Stream service to simulate sensor data. If your board includes a
 battery, voltage and level readings will be sent to the ``battery`` endpoint.
 
@@ -153,7 +153,7 @@ This reference design may be built for the `Nordic nRF9160 DK`_.
 Use the following commands to build and program. (Use the same console commands
 from above to provision this board after programming the firmware.)
 
-.. code-block:: console
+.. code-block:: text
 
    $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"<your.semantic.version>\"
    $ (.venv) west flash
@@ -186,7 +186,7 @@ the following workflow to pull in future changes:
   * Merge template release tag into your ``main`` (or other branch)
   * Resolve merge conflicts (if any) and commit to your repository
 
-.. code-block:: console
+.. code-block:: shell
 
    # Setup
    git remote add template https://github.com/golioth/reference-design-template.git
@@ -197,7 +197,7 @@ the following workflow to pull in future changes:
    git checkout your_local_branch
    git merge template_v1.0.0
 
-   # Resolve merge conflicts if necessry
+   # Resolve merge conflicts if necessary
    git add resolved_files
    git commit
 
