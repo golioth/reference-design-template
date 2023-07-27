@@ -125,16 +125,16 @@ Stateful Data (LightDB State)
 
 The concept of Digital Twin is demonstrated with the LightDB State
 ``example_int0`` and ``example_int1`` variables that are members of the ``desired``
-and ``actual`` endpoints.
+and ``state`` endpoints.
 
 * ``desired`` values may be changed from the cloud side. The device will recognize
   these, validate them for [0..65535] bounding, and then reset these endpoints
   to ``-1``
 
-* ``actual`` values will be updated by the device whenever a valid value is
-  received from the ``desired`` endpoints. The cloud may read the ``actual``
+* ``state`` values will be updated by the device whenever a valid value is
+  received from the ``desired`` endpoints. The cloud may read the ``state``
   endpoints to determine device status, but only the device should ever write to
-  the ``actual`` endpoints.
+  the ``state`` endpoints.
 
 Further Information in Header Files
 ===================================
