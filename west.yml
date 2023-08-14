@@ -7,7 +7,7 @@ manifest:
   projects:
     - name: golioth
       path: modules/lib/golioth
-      revision: f01824d8f0943463ee07cb493103a63221599c79
+      revision: v0.7.1
       url: https://github.com/golioth/golioth-zephyr-sdk
       west-commands: scripts/west-commands.yml
       import:
@@ -23,15 +23,16 @@ manifest:
           - mcuboot
           - net-tools
           - nrfxlib
-          - tfm-mcuboot
-          - trusted-firmware-m
           - qcbor
           - segger
+          - tfm-mcuboot
           - tinycrypt
+          - trusted-firmware-m
+          - zcbor
 
     - name: golioth-zephyr-boards
-      path: app/golioth-boards
-      revision: 0a0a27dc2facc4245be0d15b9b36ce526cbf9262
+      path: deps/modules/lib/golioth-boards
+      revision: v1.0.0
       url: git@github.com:golioth/golioth-zephyr-boards.git
 
     - name: libostentus
@@ -40,8 +41,8 @@ manifest:
       url: git@github.com:golioth/libostentus.git
 
     - name: zephyr-network-info
-      path: app/src/network_info
-      revision: eda40fe3fa186fa47888f8b461acbf444cf6c7e6
+      path: deps/modules/lib/network-info
+      revision: v1.0.1
       url: https://github.com/golioth/zephyr-network-info
 
   self:

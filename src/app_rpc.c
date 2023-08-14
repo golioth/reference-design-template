@@ -10,12 +10,10 @@ LOG_MODULE_REGISTER(app_rpc, LOG_LEVEL_DBG);
 
 #include <net/golioth/system_client.h>
 #include <net/golioth/rpc.h>
-#include <qcbor/qcbor.h>
-#include <qcbor/qcbor_spiffy_decode.h>
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/sys/reboot.h>
 
-#include "network_info.h"
+#include <network_info.h>
 #include "app_rpc.h"
 
 static struct golioth_client *client;
@@ -36,39 +34,32 @@ static void reboot_work_handler(struct k_work *work)
 }
 K_WORK_DEFINE(reboot_work, reboot_work_handler);
 
-static enum golioth_rpc_status on_get_network_info(QCBORDecodeContext *request_params_array,
-						   QCBOREncodeContext *response_detail_map,
+static enum golioth_rpc_status on_get_network_info(zcbor_state_t *request_params_array,
+						   zcbor_state_t *response_detail_map,
 						   void *callback_arg)
 {
-	QCBORError qerr;
-
-	qerr = QCBORDecode_GetError(request_params_array);
-	if (qerr != QCBOR_SUCCESS) {
-		LOG_ERR("Failed to decode array items: %d (%s)", qerr, qcbor_err_to_str(qerr));
-		return GOLIOTH_RPC_INVALID_ARGUMENT;
-	}
-
 	network_info_add_to_map(response_detail_map);
 
 	return GOLIOTH_RPC_OK;
 }
 
-static enum golioth_rpc_status on_set_log_level(QCBORDecodeContext *request_params_array,
-						QCBOREncodeContext *response_detail_map,
+static enum golioth_rpc_status on_set_log_level(zcbor_state_t *request_params_array,
+						zcbor_state_t *response_detail_map,
 						void *callback_arg)
 {
-	double a;
-	uint32_t log_level;
-	QCBORError qerr;
+	double param_0;
+	uint8_t log_level;
+	bool ok;
 
-	QCBORDecode_GetDouble(request_params_array, &a);
-	qerr = QCBORDecode_GetError(request_params_array);
-	if (qerr != QCBOR_SUCCESS) {
-		LOG_ERR("Failed to decode array item: %d (%s)", qerr, qcbor_err_to_str(qerr));
+	LOG_WRN("on_set_log_level");
+
+	ok = zcbor_float_decode(request_params_array, &param_0);
+	if (!ok) {
+		LOG_ERR("Failed to decode array item");
 		return GOLIOTH_RPC_INVALID_ARGUMENT;
 	}
 
-	log_level = (uint32_t)a;
+	log_level = (uint8_t)param_0;
 
 	if ((log_level < 0) || (log_level > LOG_LEVEL_DBG)) {
 
@@ -90,11 +81,15 @@ static enum golioth_rpc_status on_set_log_level(QCBORDecodeContext *request_para
 	}
 
 	LOG_WRN("Log levels for %d modules set to: %d", source_id, log_level);
+
+	ok = zcbor_tstr_put_lit(response_detail_map, "log_modules") &&
+	     zcbor_float64_put(response_detail_map, (double)source_id);
+
 	return GOLIOTH_RPC_OK;
 }
 
-static enum golioth_rpc_status on_reboot(QCBORDecodeContext *request_params_array,
-					 QCBOREncodeContext *response_detail_map,
+static enum golioth_rpc_status on_reboot(zcbor_state_t *request_params_array,
+					 zcbor_state_t *response_detail_map,
 					 void *callback_arg)
 {
 	/* Use work queue so this RPC can return confirmation to Golioth */
@@ -113,7 +108,6 @@ static void rpc_log_if_register_failure(int err)
 int app_rpc_init(struct golioth_client *state_client)
 {
 	client = state_client;
-	network_info_init();
 	int err = app_rpc_register(client);
 	return err;
 }

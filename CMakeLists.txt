@@ -17,4 +17,3 @@ target_sources(app PRIVATE src/libostentus/libostentus.c)
 target_sources_ifdef(CONFIG_BOOTLOADER_MCUBOOT app PRIVATE src/dfu/flash.c)
 
 add_subdirectory_ifdef(CONFIG_ALUDEL_BATTERY_MONITOR src/battery_monitor)
-add_subdirectory(src/network_info)
