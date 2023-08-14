@@ -64,37 +64,71 @@ static void golioth_on_connect(struct golioth_client *client)
 	}
 }
 
+#ifdef CONFIG_SOC_NRF9160
+static void process_lte_connected(void)
+{
+	network_led_set(1);
+	golioth_system_client_start();
+}
+
+/**
+ * @brief Perform actions based on LTE connection events
+ *
+ * This is copied from the Golioth samples/common/nrf91_lte_monitor.c to allow us to perform custom
+ * actions (turn on LED and start Golioth client) when a network connection becomes available.
+ *
+ * Set `CONFIG_GOLIOTH_SAMPLE_NRF91_LTE_MONITOR=n` so that the common sample code doesn't collide.
+ *
+ * @param evt
+ */
 static void lte_handler(const struct lte_lc_evt *const evt)
 {
 	switch (evt->type) {
 	case LTE_LC_EVT_NW_REG_STATUS:
-		if ((evt->nw_reg_status != LTE_LC_NW_REG_REGISTERED_HOME) &&
-		    (evt->nw_reg_status != LTE_LC_NW_REG_REGISTERED_ROAMING)) {
+		switch (evt->nw_reg_status) {
+		case LTE_LC_NW_REG_NOT_REGISTERED:
+			LOG_INF("Network: Not registered");
+			break;
+		case LTE_LC_NW_REG_REGISTERED_HOME:
+			LOG_INF("Network: Registered (home)");
+			process_lte_connected();
+			break;
+		case LTE_LC_NW_REG_SEARCHING:
+			LOG_INF("Network: Searching");
+			break;
+		case LTE_LC_NW_REG_REGISTRATION_DENIED:
+			LOG_INF("Network: Registration denied");
+			break;
+		case LTE_LC_NW_REG_UNKNOWN:
+			LOG_INF("Network: Unknown");
+			break;
+		case LTE_LC_NW_REG_REGISTERED_ROAMING:
+			LOG_INF("Network: Registered (roaming)");
+			process_lte_connected();
+			break;
+		case LTE_LC_NW_REG_REGISTERED_EMERGENCY:
+			LOG_INF("Network: Registered (emergency)");
+			break;
+		case LTE_LC_NW_REG_UICC_FAIL:
+			LOG_INF("Network: UICC fail");
 			break;
 		}
-
-		LOG_INF("Connected to LTE network");
-		network_led_set(1);
-
-		golioth_system_client_start();
-
 		break;
-	case LTE_LC_EVT_PSM_UPDATE:
-	case LTE_LC_EVT_EDRX_UPDATE:
 	case LTE_LC_EVT_RRC_UPDATE:
-	case LTE_LC_EVT_CELL_UPDATE:
-	case LTE_LC_EVT_LTE_MODE_UPDATE:
-	case LTE_LC_EVT_TAU_PRE_WARNING:
-	case LTE_LC_EVT_NEIGHBOR_CELL_MEAS:
-	case LTE_LC_EVT_MODEM_SLEEP_EXIT_PRE_WARNING:
-	case LTE_LC_EVT_MODEM_SLEEP_EXIT:
-	case LTE_LC_EVT_MODEM_SLEEP_ENTER:
-		/* Callback events carrying LTE link data */
+		switch (evt->rrc_mode) {
+		case LTE_LC_RRC_MODE_CONNECTED:
+			LOG_DBG("RRC: Connected");
+			break;
+		case LTE_LC_RRC_MODE_IDLE:
+			LOG_DBG("RRC: Idle");
+			break;
+		}
 		break;
 	default:
 		break;
 	}
 }
+#endif /* CONFIG_SOC_NRF9160 */
 
 #ifdef CONFIG_MODEM_INFO
 static void log_modem_firmware_version(void)
@@ -141,7 +175,7 @@ void network_led_set(uint8_t state)
 	led_internet_set(pin_state);
 }
 
-void main(void)
+int main(void)
 {
 	int err;
 
@@ -183,14 +217,18 @@ void main(void)
 	/* Register Golioth on_connect callback */
 	client->on_connect = golioth_on_connect;
 
-	/* Run WiFi/DHCP if necessary */
-	if (IS_ENABLED(CONFIG_GOLIOTH_SAMPLES_COMMON)) {
-		net_connect();
-	}
+	/* Start LTE asynchronously if the nRF9160 is used
+	 * Golioth Client will start automatically when LTE connects
+	 */
+	IF_ENABLED(CONFIG_SOC_NRF9160, (LOG_INF("Connecting to LTE, this may take some time...");
+					lte_lc_init_and_connect_async(lte_handler);));
 
-	if (IS_ENABLED(CONFIG_LTE_AUTO_INIT_AND_CONNECT)) {
-		LOG_INF("Device is using automatic LTE control");
-		network_led_set(1);
+	/* If nRF9160 is not used, start the Golioth Client and block until connected */
+	if (!IS_ENABLED(CONFIG_SOC_NRF9160)) {
+		/* Run WiFi/DHCP if necessary */
+		if (IS_ENABLED(CONFIG_GOLIOTH_SAMPLES_COMMON)) {
+			net_connect();
+		}
 
 		/* Start Golioth client */
 		golioth_system_client_start();
@@ -198,28 +236,23 @@ void main(void)
 		/* Block until connected to Golioth */
 		k_sem_take(&connected, K_FOREVER);
 
-	} else if (IS_ENABLED(CONFIG_SOC_NRF9160)) {
-		LOG_INF("Connecting to LTE network. This may take a few minutes...");
-		err = lte_lc_init_and_connect_async(lte_handler);
-		if (err) {
-			printk("lte_lc_init_and_connect_async, error: %d\n", err);
-			return;
-		}
+		/* Turn on Golioth logo LED once connected */
+		gpio_pin_set_dt(&golioth_led, 1);
 	}
 
 	/* Set up user button */
 	err = gpio_pin_configure_dt(&user_btn, GPIO_INPUT);
-	if (err != 0) {
-		printk("Error %d: failed to configure %s pin %d\n", err, user_btn.port->name,
-		       user_btn.pin);
-		return;
+	if (err) {
+		LOG_ERR("Error %d: failed to configure %s pin %d", err, user_btn.port->name,
+			user_btn.pin);
+		return err;
 	}
 
 	err = gpio_pin_interrupt_configure_dt(&user_btn, GPIO_INT_EDGE_TO_ACTIVE);
-	if (err != 0) {
-		printk("Error %d: failed to configure interrupt on %s pin %d\n", err,
-		       user_btn.port->name, user_btn.pin);
-		return;
+	if (err) {
+		LOG_ERR("Error %d: failed to configure interrupt on %s pin %d", err,
+			user_btn.port->name, user_btn.pin);
+		return err;
 	}
 
 	gpio_init_callback(&button_cb_data, button_pressed, BIT(user_btn.pin));
