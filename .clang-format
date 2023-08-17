@@ -87,3 +87,4 @@ UseTab: Always
 WhitespaceSensitiveMacros:
   - STRINGIFY
   - Z_STRINGIFY
+  - IF_ENABLED

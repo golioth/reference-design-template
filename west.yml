@@ -36,8 +36,8 @@ manifest:
       url: git@github.com:golioth/golioth-zephyr-boards.git
 
     - name: libostentus
-      path: app/src/libostentus
-      revision: 5d37e4160959881932d1dd869e1d238096878cf2
+      path: deps/modules/lib/libostentus
+      revision: v1.0.0
       url: git@github.com:golioth/libostentus.git
 
     - name: zephyr-network-info
