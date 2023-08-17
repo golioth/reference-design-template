@@ -6,4 +6,3 @@ build*/
 .cache
 credentials.conf
 __pycache__/
-libostentus

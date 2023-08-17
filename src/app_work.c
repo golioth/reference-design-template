@@ -11,8 +11,10 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 #include <zephyr/drivers/gpio.h>
 
 #include "app_work.h"
-#include "libostentus/libostentus.h"
 
+#ifdef CONFIG_LIB_OSTENTUS
+#include <libostentus.h>
+#endif
 #ifdef CONFIG_ALUDEL_BATTERY_MONITOR
 #include "battery_monitor/battery.h"
 #endif
@@ -40,10 +42,11 @@ void app_work_sensor_read(void)
 	int err;
 	char json_buf[256];
 
-	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR,
-		   (read_and_report_battery();
-		    slide_set(BATTERY_V, get_batt_v_str(), strlen(get_batt_v_str()));
-		    slide_set(BATTERY_LVL, get_batt_lvl_str(), strlen(get_batt_lvl_str()));));
+	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
+		read_and_report_battery();
+		slide_set(BATTERY_V, get_batt_v_str(), strlen(get_batt_v_str()));
+		slide_set(BATTERY_LVL, get_batt_lvl_str(), strlen(get_batt_lvl_str()));
+	));
 
 	/* For this demo, we just send Hello to Golioth */
 	static uint8_t counter;
@@ -66,15 +69,16 @@ void app_work_sensor_read(void)
 		LOG_ERR("Failed to send sensor data to Golioth: %d", err);
 	}
 
-	/* Update slide values on Ostentus
-	 *  -values should be sent as strings
-	 *  -use the enum from app_work.h for slide key values
-	 */
-	snprintk(json_buf, sizeof(json_buf), "%d", counter);
-	slide_set(UP_COUNTER, json_buf, strlen(json_buf));
-	snprintk(json_buf, sizeof(json_buf), "%d", 255 - counter);
-	slide_set(DN_COUNTER, json_buf, strlen(json_buf));
-
+	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
+		/* Update slide values on Ostentus
+		 *  -values should be sent as strings
+		 *  -use the enum from app_work.h for slide key values
+		 */
+		snprintk(json_buf, sizeof(json_buf), "%d", counter);
+		slide_set(UP_COUNTER, json_buf, strlen(json_buf));
+		snprintk(json_buf, sizeof(json_buf), "%d", 255 - counter);
+		slide_set(DN_COUNTER, json_buf, strlen(json_buf));
+	));
 	++counter;
 }
 

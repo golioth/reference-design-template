@@ -16,7 +16,10 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include "app_state.h"
 #include "app_work.h"
 #include "dfu/app_dfu.h"
-#include "libostentus/libostentus.h"
+
+#ifdef CONFIG_LIB_OSTENTUS
+#include <libostentus.h>
+#endif
 #ifdef CONFIG_ALUDEL_BATTERY_MONITOR
 #include "battery_monitor/battery.h"
 #endif
@@ -40,7 +43,6 @@ static struct gpio_callback button_cb_data;
 
 /* forward declarations */
 void golioth_connection_led_set(uint8_t state);
-void network_led_set(uint8_t state);
 
 void wake_system_thread(void)
 {
@@ -67,7 +69,9 @@ static void golioth_on_connect(struct golioth_client *client)
 #ifdef CONFIG_SOC_NRF9160
 static void process_lte_connected(void)
 {
-	network_led_set(1);
+	/* Change the state of the Internet LED on Ostentus */
+	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_internet_set(1);));
+
 	golioth_system_client_start();
 }
 
@@ -164,15 +168,7 @@ void golioth_connection_led_set(uint8_t state)
 	/* Turn on Golioth logo LED once connected */
 	gpio_pin_set_dt(&golioth_led, pin_state);
 	/* Change the state of the Golioth LED on Ostentus */
-	led_golioth_set(pin_state);
-}
-
-/* Set (unset) LED indicators for active internet connection */
-void network_led_set(uint8_t state)
-{
-	uint8_t pin_state = state ? 1 : 0;
-	/* Change the state of the Internet LED on Ostentus */
-	led_internet_set(pin_state);
+	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_golioth_set(pin_state);));
 }
 
 int main(void)
@@ -184,11 +180,12 @@ int main(void)
 	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMAGE_VERSION);
 	IF_ENABLED(CONFIG_MODEM_INFO, (log_modem_firmware_version();));
 
-	/* Update Ostentus LEDS using bitmask (Power On and Battery)*/
-	led_bitmask(LED_POW | LED_BAT);
-
-	/* Show Golioth Logo on Ostentus ePaper screen */
-	show_splash();
+	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
+		/* Update Ostentus LEDS using bitmask (Power On and Battery) */
+		led_bitmask(LED_POW | LED_BAT);
+		/* Show Golioth Logo on Ostentus ePaper screen */
+		show_splash();
+	));
 
 	/* Get system thread id so loop delay change event can wake main */
 	_system_thread = k_current_get();
@@ -258,26 +255,29 @@ int main(void)
 	gpio_init_callback(&button_cb_data, button_pressed, BIT(user_btn.pin));
 	gpio_add_callback(user_btn.port, &button_cb_data);
 
-	/* Set up a slideshow on Ostentus
-	 *  - add up to 256 slides
-	 *  - use the enum in app_work.h to add new keys
-	 *  - values are updated using these keys (see app_work.c)
-	 */
-	slide_add(UP_COUNTER, LABEL_UP_COUNTER, strlen(LABEL_UP_COUNTER));
-	slide_add(DN_COUNTER, LABEL_DN_COUNTER, strlen(LABEL_DN_COUNTER));
-	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR,
-		   (slide_add(BATTERY_V, LABEL_BATTERY, strlen(LABEL_BATTERY));
-		    slide_add(BATTERY_LVL, LABEL_BATTERY, strlen(LABEL_BATTERY));));
-	slide_add(FIRMWARE, LABEL_FIRMWARE, strlen(LABEL_FIRMWARE));
+	IF_ENABLED(CONFIG_LIB_OSTENTUS,(
+		/* Set up a slideshow on Ostentus
+		 *  - add up to 256 slides
+		 *  - use the enum in app_work.h to add new keys
+		 *  - values are updated using these keys (see app_work.c)
+		 */
+		slide_add(UP_COUNTER, LABEL_UP_COUNTER, strlen(LABEL_UP_COUNTER));
+		slide_add(DN_COUNTER, LABEL_DN_COUNTER, strlen(LABEL_DN_COUNTER));
+		IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
+			slide_add(BATTERY_V, LABEL_BATTERY, strlen(LABEL_BATTERY));
+			slide_add(BATTERY_LVL, LABEL_BATTERY, strlen(LABEL_BATTERY));
+		));
+		slide_add(FIRMWARE, LABEL_FIRMWARE, strlen(LABEL_FIRMWARE));
 
-	/* Set the title ofthe Ostentus summary slide (optional) */
-	summary_title(SUMMARY_TITLE, strlen(SUMMARY_TITLE));
+		/* Set the title ofthe Ostentus summary slide (optional) */
+		summary_title(SUMMARY_TITLE, strlen(SUMMARY_TITLE));
 
-	/* Update the Firmware slide with the firmware version */
-	slide_set(FIRMWARE, CONFIG_MCUBOOT_IMAGE_VERSION, strlen(CONFIG_MCUBOOT_IMAGE_VERSION));
+		/* Update the Firmware slide with the firmware version */
+		slide_set(FIRMWARE, CONFIG_MCUBOOT_IMAGE_VERSION, strlen(CONFIG_MCUBOOT_IMAGE_VERSION));
 
-	/* Start Ostentus slideshow with 30 second delay between slides */
-	slideshow(30000);
+		/* Start Ostentus slideshow with 30 second delay between slides */
+		slideshow(30000);
+	));
 
 	while (true) {
 		app_work_sensor_read();
