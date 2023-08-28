@@ -33,12 +33,12 @@ manifest:
     - name: golioth-zephyr-boards
       path: deps/modules/lib/golioth-boards
       revision: v1.0.0
-      url: git@github.com:golioth/golioth-zephyr-boards.git
+      url: https://github.com/golioth/golioth-zephyr-boards
 
     - name: libostentus
       path: deps/modules/lib/libostentus
       revision: v1.0.0
-      url: git@github.com:golioth/libostentus.git
+      url: https://github.com/golioth/libostentus
 
     - name: zephyr-network-info
       path: deps/modules/lib/network-info
