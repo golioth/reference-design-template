@@ -1,11 +1,8 @@
 /*
- * Copyright (c) 2022 Golioth, Inc.
+ * Copyright (c) 2022-2023 Golioth, Inc.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-#ifndef __APP_SETTINGS_H__
-#define __APP_SETTINGS_H__
 
 /**
  * Process changes received from the Golioth Settings Service and return a code
@@ -17,6 +14,9 @@
  *
  * https://docs.golioth.io/firmware/zephyr-device-sdk/device-settings-service
  */
+
+#ifndef __APP_SETTINGS_H__
+#define __APP_SETTINGS_H__
 
 #include <stdint.h>
 #include <net/golioth/system_client.h>

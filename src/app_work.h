@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2022 Golioth, Inc.
+ * Copyright (c) 2022-2023 Golioth, Inc.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef __APP_WORK_H__
 #define __APP_WORK_H__
-
-#include <net/golioth/system_client.h>
 
 /** The `app_work.c` file performs the important work of this application which
  * is to read sensor values and report them to the Golioth LightDB Stream as
@@ -21,6 +19,8 @@
  *
  * https://docs.golioth.io/firmware/zephyr-device-sdk/light-db-stream/
  */
+
+#include <net/golioth/system_client.h>
 
 void app_work_init(struct golioth_client *work_client);
 void app_work_sensor_read(void);

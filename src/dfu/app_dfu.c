@@ -1,19 +1,19 @@
 /*
- * Copyright (c) 2022 Golioth, Inc.
+ * Copyright (c) 2022-2023 Golioth, Inc.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#include <stdlib.h>
+#include <stdio.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(app_dfu, LOG_LEVEL_DBG);
 
-#include <net/golioth/fw.h>
-#include <net/golioth/system_client.h>
-
-#include <stdlib.h>
-#include <stdio.h>
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/sys/reboot.h>
+
+#include <net/golioth/fw.h>
+#include <net/golioth/system_client.h>
 
 #include "flash.h"
 

@@ -1,11 +1,8 @@
 /*
- * Copyright (c) 2022 Golioth, Inc.
+ * Copyright (c) 2022-2023 Golioth, Inc.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-#ifndef __APP_RPC_H__
-#define __APP_RPC_H__
 
 /**
  * Handle remote procedure calls received from Golioth, returning a status code
@@ -19,6 +16,9 @@
  *
  * https://docs.golioth.io/firmware/zephyr-device-sdk/remote-procedure-call
  */
+
+#ifndef __APP_RPC_H__
+#define __APP_RPC_H__
 
 #include <net/golioth/system_client.h>
 
