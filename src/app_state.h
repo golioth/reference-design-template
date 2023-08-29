@@ -1,11 +1,8 @@
 /*
- * Copyright (c) 2022 Golioth, Inc.
+ * Copyright (c) 2022-2023 Golioth, Inc.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-#ifndef __APP_STATE_H__
-#define __APP_STATE_H__
 
 /** Observe and write to example endpoints for stateful data on the Golioth
  * LightDB State Service.
@@ -25,6 +22,9 @@
  *
  * https://docs.golioth.io/firmware/zephyr-device-sdk/light-db/
  */
+
+#ifndef __APP_STATE_H__
+#define __APP_STATE_H__
 
 #include <net/golioth/system_client.h>
 
