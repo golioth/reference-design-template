@@ -1,0 +1,74 @@
+name: Build binary for Nordic NCS
+
+# Runs manually.
+on:
+  workflow_dispatch:
+    inputs:
+      mcuboot_image_version:
+        description: 'MCUboot Image Version.'
+        required: true
+        default: '0.0.0'
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Uses matrix to test combinations. Update when SDK changes or to add new boards.
+    strategy:
+      matrix:
+        ZEPHYR_SDK_VERSION: [0.16.1]
+        BOARD: ["nrf9160dk_nrf9160_ns","aludel_mini_v1_sparkfun9160_ns"]
+
+    steps:
+      - name: Install OS dependencies
+        run: >
+          sudo apt-get install -y
+          cmake
+          device-tree-compiler
+          git
+          ninja-build
+          python3
+          python3-pip
+          wget
+          xz-utils
+
+      - name: Install build tools
+        run: |
+          pip3 install wheel
+          pip3 install west
+
+      - name: Install Zephyr SDK
+        run: |
+          wget -q "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${{ matrix.ZEPHYR_SDK_VERSION }}/zephyr-sdk-${{ matrix.ZEPHYR_SDK_VERSION }}_linux-x86_64_minimal.tar.xz"
+          mkdir -p /opt/zephyr-sdk
+          tar -xvf zephyr-sdk-${{ matrix.ZEPHYR_SDK_VERSION }}_linux-x86_64_minimal.tar.xz -C /opt/zephyr-sdk --strip-components=1
+          /opt/zephyr-sdk/setup.sh -t arm-zephyr-eabi
+          rm zephyr-sdk-${{ matrix.ZEPHYR_SDK_VERSION }}_linux-x86_64_minimal.tar.xz
+
+      - name: Build with West
+        run: |
+          west init -m https://github.com/$GITHUB_REPOSITORY .
+          west update
+          west zephyr-export
+          pip3 install -r deps/zephyr/scripts/requirements.txt
+          west build -p -b ${{ matrix.BOARD }} app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"${{ inputs.mcuboot_image_version }}\"
+
+      - name: Create filename prefix
+        run: echo "PREFIX=golioth-${{ github.event.repository.name }}-${{ matrix.BOARD }}" >> "$GITHUB_ENV"
+
+      - name: Prepare artifacts
+        run: |
+          cd build/zephyr
+          mkdir -p artifacts
+          mv merged.hex     ./artifacts/${{ env.PREFIX }}_full_${GITHUB_SHA::7}.hex
+          mv app_update.bin ./artifacts/${{ env.PREFIX }}_update_${GITHUB_SHA::7}.bin
+          mv zephyr.elf     ./artifacts/${{ env.PREFIX }}_${GITHUB_SHA::7}.elf
+
+      # Run IDs are unique per repo but are reused on re-runs
+      - name: Save artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build_artifacts_${{ github.run_id }}
+          path: |
+            build/zephyr/artifacts/*
