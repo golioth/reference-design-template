@@ -1,12 +1,14 @@
 name: Build binary for Nordic NCS
 
-# Runs when pushed to main, semver tagged release or any PR
+# Runs manually.
 on:
-  push:
-    branches: [ main ]
-    tags: [ 'v*.*.*' ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      mcuboot_image_version:
+        description: 'MCUboot Image Version.'
+        required: true
+        default: '0.0.0'
+        type: string
 
 jobs:
   build:
@@ -50,7 +52,7 @@ jobs:
           west update
           west zephyr-export
           pip3 install -r deps/zephyr/scripts/requirements.txt
-          west build -p -b ${{ matrix.BOARD }} app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"0.0.0\"
+          west build -p -b ${{ matrix.BOARD }} app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"${{ inputs.mcuboot_image_version }}\"
 
       - name: Create filename prefix
         run: echo "PREFIX=golioth-${{ github.event.repository.name }}-${{ matrix.BOARD }}" >> "$GITHUB_ENV"
