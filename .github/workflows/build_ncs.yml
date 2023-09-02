@@ -51,8 +51,17 @@ jobs:
           west zephyr-export
           pip3 install -r deps/zephyr/scripts/requirements.txt
           west build -p -b ${{ matrix.BOARD }} app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"0.0.0\"
-          mv build/zephyr/zephyr.bin build/zephyr/${{ matrix.BOARD }}.bin
-          mv build/zephyr/zephyr.elf build/zephyr/${{ matrix.BOARD }}.elf
+
+      - name: Create filename prefix
+        run: echo "PREFIX=golioth-${{ github.event.repository.name }}-${{ matrix.BOARD }}" >> "$GITHUB_ENV"
+
+      - name: Prepare artifacts
+        run: |
+          cd build/zephyr
+          mkdir -p artifacts
+          mv merged.hex     ./artifacts/${{ env.PREFIX }}_full_${GITHUB_SHA::7}.hex
+          mv app_update.bin ./artifacts/${{ env.PREFIX }}_update_${GITHUB_SHA::7}.bin
+          mv zephyr.elf     ./artifacts/${{ env.PREFIX }}_${GITHUB_SHA::7}.elf
 
       # Run IDs are unique per repo but are reused on re-runs
       - name: Save artifact
@@ -60,5 +69,4 @@ jobs:
         with:
           name: build_artifacts_${{ github.run_id }}
           path: |
-            build/zephyr/${{ matrix.BOARD }}.bin
-            build/zephyr/${{ matrix.BOARD }}.elf
+            build/zephyr/artifacts/*
