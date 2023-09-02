@@ -1,0 +1,50 @@
+name: Test builds for Nordic NCS
+
+# Runs on PRs.
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Uses matrix to test combinations. Update when SDK changes or to add new boards.
+    strategy:
+      matrix:
+        ZEPHYR_SDK_VERSION: [0.16.1]
+        BOARD: ["nrf9160dk_nrf9160_ns","aludel_mini_v1_sparkfun9160_ns"]
+
+    steps:
+      - name: Install OS dependencies
+        run: >
+          sudo apt-get install -y
+          cmake
+          device-tree-compiler
+          git
+          ninja-build
+          python3
+          python3-pip
+          wget
+          xz-utils
+
+      - name: Install build tools
+        run: |
+          pip3 install wheel
+          pip3 install west
+
+      - name: Install Zephyr SDK
+        run: |
+          wget -q "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${{ matrix.ZEPHYR_SDK_VERSION }}/zephyr-sdk-${{ matrix.ZEPHYR_SDK_VERSION }}_linux-x86_64_minimal.tar.xz"
+          mkdir -p /opt/zephyr-sdk
+          tar -xvf zephyr-sdk-${{ matrix.ZEPHYR_SDK_VERSION }}_linux-x86_64_minimal.tar.xz -C /opt/zephyr-sdk --strip-components=1
+          /opt/zephyr-sdk/setup.sh -t arm-zephyr-eabi
+          rm zephyr-sdk-${{ matrix.ZEPHYR_SDK_VERSION }}_linux-x86_64_minimal.tar.xz
+
+      - name: Build with West
+        run: |
+          west init -m https://github.com/$GITHUB_REPOSITORY .
+          west update
+          west zephyr-export
+          pip3 install -r deps/zephyr/scripts/requirements.txt
+          west build -p -b ${{ matrix.BOARD }} app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"0.0.0\"
