@@ -1,0 +1,67 @@
+name: Build Zephyr binaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      ZEPHYR_SDK:
+        required: true
+        type: string
+        default: 0.16.3
+      BOARD:
+        required: true
+        type: string
+        default: aludel_mini_v1_sparkfun9160_ns
+
+  workflow_call:
+    inputs:
+      ZEPHYR_SDK:
+        required: true
+        type: string
+      BOARD:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container: ghcr.io/beriberikix/golioth-zephyr-base:${{ inputs.ZEPHYR_SDK }}sdk
+
+    env:
+      ZEPHYR_SDK_INSTALL_DIR: /opt/toolchains/zephyr-sdk-${{ inputs.ZEPHYR_SDK }}
+
+    steps:
+      - name: Setup West workspace
+        run: |
+          west init -m https://github.com/$GITHUB_REPOSITORY .
+          west update --narrow -o=--depth=1
+          west zephyr-export
+          pip3 install -r deps/zephyr/scripts/requirements-base.txt
+          # Needed for TF-M
+          pip3 install cryptography pyasn1 pyyaml cbor>=1.0.0 imgtool>=1.9.0 jinja2 click
+
+      - name: Build with West
+        run: |
+          west build -p -b ${{ inputs.BOARD }} app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"0.0.0\"
+
+      - name: Create filename prefix
+        run: echo "PREFIX=golioth-${{ github.event.repository.name }}-${{ inputs.BOARD }}" >> "$GITHUB_ENV"
+      
+      - name: Generate short SHA
+        uses: benjlevesque/short-sha@v2.2
+
+      - name: Prepare artifacts
+        run: |
+          cd build/zephyr
+          mkdir -p artifacts
+          mv merged.hex     ./artifacts/${{ env.PREFIX }}_full_${{ env.SHA }}.hex
+          mv app_update.bin ./artifacts/${{ env.PREFIX }}_update_${{ env.SHA }}.bin
+          mv zephyr.elf     ./artifacts/${{ env.PREFIX }}_${{ env.SHA }}.elf
+
+      # Run IDs are unique per repo but are reused on re-runs
+      - name: Save artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build_artifacts_${{ github.run_id }}
+          path: |
+            build/zephyr/artifacts/*
