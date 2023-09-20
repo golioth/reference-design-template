@@ -349,10 +349,12 @@ int read_and_report_battery(void)
 
 	log_battery_data();
 
-	err = stream_battery_data(&batt_data);
-	if (err) {
-		LOG_ERR("Error streaming battery info");
-		return err;
+	if (golioth_is_connected(client)) {
+		err = stream_battery_data(&batt_data);
+		if (err) {
+			LOG_ERR("Error streaming battery info");
+			return err;
+		}
 	}
 
 	return 0;
