@@ -169,6 +169,8 @@ from ``west.yml`` and remove the includes/function calls from the C code.
   Aludel-Mini
 * `libostentus`_ is a helper library for controlling the Ostentus ePaper
   faceplate
+* `zephyr-network-info`_ is a helper library for querying, formatting, and returning network
+  connection information via Zephyr log or Golioth RPC
 
 Using this template to start a new project
 ******************************************
@@ -205,3 +207,4 @@ the following workflow to pull in future changes:
 .. _Nordic nRF9160 DK: https://www.nordicsemi.com/Products/Development-hardware/nrf9160-dk
 .. _golioth-zephyr-boards: https://github.com/golioth/golioth-zephyr-boards
 .. _libostentus: https://github.com/golioth/libostentus
+.. _zephyr-network-info: https://github.com/golioth/zephyr-network-info
