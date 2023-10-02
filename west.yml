@@ -6,10 +6,11 @@ manifest:
 
   projects:
     - name: golioth
-      path: modules/lib/golioth
-      revision: v0.8.0
-      url: https://github.com/golioth/golioth-zephyr-sdk
+      path: modules/lib/golioth-firmware-sdk
+      revision: v0.10.0
+      url: https://github.com/golioth/golioth-firmware-sdk.git
       west-commands: scripts/west-commands.yml
+      submodules: true
       import:
         file: west-ncs.yml
         path-prefix: deps
@@ -42,7 +43,7 @@ manifest:
 
     - name: zephyr-network-info
       path: deps/modules/lib/network-info
-      revision: v1.0.1
+      revision: v1.1.0
       url: https://github.com/golioth/zephyr-network-info
 
   self:
