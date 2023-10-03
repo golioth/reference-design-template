@@ -20,9 +20,9 @@
  * https://docs.golioth.io/firmware/zephyr-device-sdk/light-db-stream/
  */
 
-#include <net/golioth/system_client.h>
+#include "golioth.h"
 
-void app_work_init(struct golioth_client *work_client);
+void app_work_init(golioth_client_t work_client);
 void app_work_sensor_read(void);
 
 #define LABEL_UP_COUNTER "Counter"
