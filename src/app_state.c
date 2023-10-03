@@ -7,8 +7,9 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(app_state, LOG_LEVEL_DBG);
 
-#include <net/golioth/system_client.h>
+#include "golioth.h"
 #include <zephyr/data/json.h>
+#include <zephyr/kernel.h>
 #include "json_helper.h"
 
 #include "app_state.h"
@@ -19,26 +20,28 @@ LOG_MODULE_REGISTER(app_state, LOG_LEVEL_DBG);
 uint32_t _example_int0;
 uint32_t _example_int1 = 1;
 
-static struct golioth_client *client;
+static golioth_client_t client;
 
 static K_SEM_DEFINE(update_actual, 0, 1);
 
-static int async_handler(struct golioth_req_rsp *rsp)
+static void async_handler(golioth_client_t client,
+			  const golioth_response_t *response,
+			  const char *path,
+			  void *arg)
 {
-	if (rsp->err) {
-		LOG_WRN("Failed to set state: %d", rsp->err);
-		return rsp->err;
+	if (response->status != GOLIOTH_OK) {
+		LOG_WRN("Failed to set state: %d", response->status);
+		return;
 	}
 
 	LOG_DBG("State successfully set");
-
-	return 0;
 }
 
-void app_state_init(struct golioth_client *state_client)
+void app_state_init(golioth_client_t state_client)
 {
 	client = state_client;
 	k_sem_give(&update_actual);
+	app_state_observe();
 }
 
 int app_state_reset_desired(void)
@@ -51,9 +54,8 @@ int app_state_reset_desired(void)
 
 	int err;
 
-	err = golioth_lightdb_set_cb(client, APP_STATE_DESIRED_ENDP,
-				     GOLIOTH_CONTENT_FORMAT_APP_JSON, sbuf, strlen(sbuf),
-				     async_handler, NULL);
+	err = golioth_lightdb_set_json_async(client, APP_STATE_DESIRED_ENDP, sbuf, strlen(sbuf),
+					     async_handler, NULL);
 	if (err) {
 		LOG_ERR("Unable to write to LightDB State: %d", err);
 	}
@@ -69,8 +71,8 @@ int app_state_update_actual(void)
 
 	int err;
 
-	err = golioth_lightdb_set_cb(client, APP_STATE_ACTUAL_ENDP, GOLIOTH_CONTENT_FORMAT_APP_JSON,
-				     sbuf, strlen(sbuf), async_handler, NULL);
+	err = golioth_lightdb_set_json_async(client, APP_STATE_ACTUAL_ENDP, sbuf, strlen(sbuf),
+					     async_handler, NULL);
 
 	if (err) {
 		LOG_ERR("Unable to write to LightDB State: %d", err);
@@ -78,27 +80,34 @@ int app_state_update_actual(void)
 	return err;
 }
 
-int app_state_desired_handler(struct golioth_req_rsp *rsp)
+static void app_state_desired_handler(golioth_client_t client,
+				      const golioth_response_t *response,
+				      const char *path,
+				      const uint8_t *payload,
+				      size_t payload_size,
+				      void *arg)
 {
-	int err = 0;
+	int err;
 	int ret;
 
-	if (rsp->err) {
-		LOG_ERR("Failed to receive '%s' endpoint: %d", APP_STATE_DESIRED_ENDP, rsp->err);
-		return rsp->err;
+	if (response->status != GOLIOTH_OK) {
+		LOG_ERR("Failed to receive '%s' endpoint: %d",
+			APP_STATE_DESIRED_ENDP,
+			response->status);
+		return;
 	}
 
-	LOG_HEXDUMP_DBG(rsp->data, rsp->len, APP_STATE_DESIRED_ENDP);
+	LOG_HEXDUMP_DBG(payload, payload_size, APP_STATE_DESIRED_ENDP);
 
 	struct app_state parsed_state;
 
-	ret = json_obj_parse((char *)rsp->data, rsp->len, app_state_descr,
+	ret = json_obj_parse((char *)payload, payload_size, app_state_descr,
 			     ARRAY_SIZE(app_state_descr), &parsed_state);
 
 	if (ret < 0) {
 		LOG_ERR("Error parsing desired values: %d", ret);
 		app_state_reset_desired();
-		return ret;
+		return;
 	}
 
 	uint8_t desired_processed_count = 0;
@@ -151,17 +160,15 @@ int app_state_desired_handler(struct golioth_req_rsp *rsp)
 		 */
 		err = app_state_reset_desired();
 	}
-
-	return err;
 }
 
 int app_state_observe(void)
 {
-	int err = golioth_lightdb_observe_cb(client, APP_STATE_DESIRED_ENDP,
-					     GOLIOTH_CONTENT_FORMAT_APP_JSON,
-					     app_state_desired_handler, NULL);
+	int err = golioth_lightdb_observe_async(client, APP_STATE_DESIRED_ENDP,
+						app_state_desired_handler, NULL);
 	if (err) {
 		LOG_WRN("failed to observe lightdb path: %d", err);
+		return err;
 	}
 
 	/* This will only run once. It updates the actual state of the device
