@@ -15,7 +15,8 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/logging/log.h>
-#include <net/golioth/system_client.h>
+#include <golioth/client.h>
+#include <golioth/stream.h>
 
 #include "battery_monitor/battery.h"
 #include "../app_work.h"
@@ -42,7 +43,6 @@ LOG_MODULE_REGISTER(battery, LOG_LEVEL_DBG);
 #define BATTERY_ADC_GAIN ADC_GAIN_1_6
 #endif
 
-static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 char stream_endpoint[] = "battery";
 
 char _batt_v_str[8] = "0.0 V";
@@ -310,7 +310,18 @@ void log_battery_data(void)
 	LOG_INF("Battery measurement: voltage=%s, level=%s", get_batt_v_str(), get_batt_lvl_str());
 }
 
-int stream_battery_data(struct battery_data *batt_data)
+static void async_error_handler(struct golioth_client *client,
+				const struct golioth_response *response,
+				const char *path,
+				void *arg)
+{
+	if (response->status != GOLIOTH_OK) {
+		LOG_ERR("Failed to stream battery data: %d", response->status);
+		return;
+	}
+}
+
+int stream_battery_data(struct golioth_client *client, struct battery_data *batt_data)
 {
 	int err;
 	/* {"batt_v":X.XXX,"batt_lvl":XXX.XX} */
@@ -322,8 +333,13 @@ int stream_battery_data(struct battery_data *batt_data)
 		 batt_data->battery_level_pptt % 100);
 	LOG_DBG("%s", json_buf);
 
-	err = golioth_stream_push(client, stream_endpoint, GOLIOTH_CONTENT_FORMAT_APP_JSON,
-				  json_buf, strlen(json_buf));
+	err = golioth_stream_set_async(client,
+				       stream_endpoint,
+				       GOLIOTH_CONTENT_TYPE_JSON,
+				       json_buf,
+				       strlen(json_buf),
+				       async_error_handler,
+				       NULL);
 	if (err) {
 		LOG_ERR("Failed to send battery data to Golioth: %d", err);
 	}
@@ -331,7 +347,7 @@ int stream_battery_data(struct battery_data *batt_data)
 	return 0;
 }
 
-int read_and_report_battery(void)
+int read_and_report_battery(struct golioth_client *client)
 {
 	int err;
 	struct battery_data batt_data;
@@ -349,8 +365,8 @@ int read_and_report_battery(void)
 
 	log_battery_data();
 
-	if (golioth_is_connected(client)) {
-		err = stream_battery_data(&batt_data);
+	if (golioth_client_is_connected(client)) {
+		err = stream_battery_data(client, &batt_data);
 		if (err) {
 			LOG_ERR("Error streaming battery info");
 			return err;
