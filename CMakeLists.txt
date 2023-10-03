@@ -12,7 +12,5 @@ target_sources(app PRIVATE src/app_rpc.c)
 target_sources(app PRIVATE src/app_settings.c)
 target_sources(app PRIVATE src/app_state.c)
 target_sources(app PRIVATE src/app_work.c)
-target_sources(app PRIVATE src/dfu/app_dfu.c)
-target_sources_ifdef(CONFIG_BOOTLOADER_MCUBOOT app PRIVATE src/dfu/flash.c)
 
 add_subdirectory_ifdef(CONFIG_ALUDEL_BATTERY_MONITOR src/battery_monitor)
