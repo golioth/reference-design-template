@@ -7,8 +7,10 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 
-#include <net/golioth/system_client.h>
+#include <golioth/client.h>
+#include <golioth/stream.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/kernel.h>
 
 #include "app_work.h"
 
@@ -26,13 +28,16 @@ static struct golioth_client *client;
 #define JSON_FMT "{\"counter\":%d}"
 
 /* Callback for LightDB Stream */
-static int async_error_handler(struct golioth_req_rsp *rsp)
+
+static void async_error_handler(struct golioth_client *client,
+				const struct golioth_response *response,
+				const char *path,
+				void *arg)
 {
-	if (rsp->err) {
-		LOG_ERR("Async task failed: %d", rsp->err);
-		return rsp->err;
+	if (response->status != GOLIOTH_OK) {
+		LOG_ERR("Async task failed: %d", response->status);
+		return;
 	}
-	return 0;
 }
 
 /* This will be called by the main() loop */
@@ -43,30 +48,28 @@ void app_work_sensor_read(void)
 	char json_buf[256];
 
 	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
-		read_and_report_battery();
+		read_and_report_battery(client);
 		IF_ENABLED(CONFIG_LIB_OSTENTUS, (
 			slide_set(BATTERY_V, get_batt_v_str(), strlen(get_batt_v_str()));
 			slide_set(BATTERY_LVL, get_batt_lvl_str(), strlen(get_batt_lvl_str()));
 		));
 	));
 
-	/* For this demo, we just send Hello to Golioth */
+	/* For this demo, we just send counter data to Golioth */
 	static uint8_t counter;
-
-	LOG_INF("Sending hello! %d", counter);
-
-	err = golioth_send_hello(client);
-	if (err) {
-		LOG_WRN("Failed to send hello!");
-	}
 
 	/* Send sensor data to Golioth */
 	/* For this demo we just fake it */
 	snprintk(json_buf, sizeof(json_buf), JSON_FMT, counter);
 	LOG_DBG("%s", json_buf);
 
-	err = golioth_stream_push_cb(client, "sensor", GOLIOTH_CONTENT_FORMAT_APP_JSON, json_buf,
-				     strlen(json_buf), async_error_handler, NULL);
+	err = golioth_stream_set_async(client,
+				       "sensor",
+				       GOLIOTH_CONTENT_TYPE_JSON,
+				       json_buf,
+				       strlen(json_buf),
+				       async_error_handler,
+				       NULL);
 	if (err) {
 		LOG_ERR("Failed to send sensor data to Golioth: %d", err);
 	}
