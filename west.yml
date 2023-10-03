@@ -43,7 +43,7 @@ manifest:
 
     - name: zephyr-network-info
       path: deps/modules/lib/network-info
-      revision: v1.0.1
+      revision: 1ecb94902f27654adcc5113c41a0fcbf99d7386c
       url: https://github.com/golioth/zephyr-network-info
 
   self:
