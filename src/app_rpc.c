@@ -8,8 +8,7 @@
 #include <zephyr/logging/log_ctrl.h>
 LOG_MODULE_REGISTER(app_rpc, LOG_LEVEL_DBG);
 
-#include <net/golioth/system_client.h>
-#include <net/golioth/rpc.h>
+#include "golioth.h"
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/sys/reboot.h>
 
@@ -34,18 +33,18 @@ static void reboot_work_handler(struct k_work *work)
 }
 K_WORK_DEFINE(reboot_work, reboot_work_handler);
 
-static enum golioth_rpc_status on_get_network_info(zcbor_state_t *request_params_array,
-						   zcbor_state_t *response_detail_map,
-						   void *callback_arg)
+static golioth_rpc_status_t on_get_network_info(zcbor_state_t *request_params_array,
+						zcbor_state_t *response_detail_map,
+						void *callback_arg)
 {
 	network_info_add_to_map(response_detail_map);
 
 	return GOLIOTH_RPC_OK;
 }
 
-static enum golioth_rpc_status on_set_log_level(zcbor_state_t *request_params_array,
-						zcbor_state_t *response_detail_map,
-						void *callback_arg)
+static golioth_rpc_status_t on_set_log_level(zcbor_state_t *request_params_array,
+					     zcbor_state_t *response_detail_map,
+					     void *callback_arg)
 {
 	double param_0;
 	uint8_t log_level;
@@ -88,9 +87,9 @@ static enum golioth_rpc_status on_set_log_level(zcbor_state_t *request_params_ar
 	return GOLIOTH_RPC_OK;
 }
 
-static enum golioth_rpc_status on_reboot(zcbor_state_t *request_params_array,
-					 zcbor_state_t *response_detail_map,
-					 void *callback_arg)
+static golioth_rpc_status_t on_reboot(zcbor_state_t *request_params_array,
+				      zcbor_state_t *response_detail_map,
+				      void *callback_arg)
 {
 	/* Use work queue so this RPC can return confirmation to Golioth */
 	k_work_submit(&reboot_work);
@@ -105,23 +104,14 @@ static void rpc_log_if_register_failure(int err)
 	}
 }
 
-int app_rpc_init(struct golioth_client *state_client)
+int app_rpc_init(golioth_client_t state_client)
 {
 	client = state_client;
 	int err = app_rpc_register(client);
 	return err;
 }
 
-int app_rpc_observe(void)
-{
-	int err = golioth_rpc_observe(client);
-	if (err) {
-		LOG_ERR("Failed to observe RPC: %d", err);
-	}
-	return err;
-}
-
-int app_rpc_register(struct golioth_client *rpc_client)
+int app_rpc_register(golioth_client_t rpc_client)
 {
 	int err;
 
