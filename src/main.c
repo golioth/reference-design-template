@@ -7,15 +7,16 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 
-#include <modem/lte_lc.h>
-#include <net/golioth/system_client.h>
-#include <samples/common/net_connect.h>
-#include <zephyr/net/coap.h>
 #include "app_rpc.h"
 #include "app_settings.h"
 #include "app_state.h"
 #include "app_work.h"
-#include "dfu/app_dfu.h"
+#include <golioth/client.h>
+#include <golioth/fw_update.h>
+#include <modem/lte_lc.h>
+#include <samples/common/net_connect.h>
+#include <samples/common/sample_credentials.h>
+#include <zephyr/kernel.h>
 
 #ifdef CONFIG_LIB_OSTENTUS
 #include <libostentus.h>
@@ -30,10 +31,11 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include <modem/modem_info.h>
 #endif
 
-static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
+/* Current firmware version; update in prj.conf or via build argument */
+static const char *_current_version = CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION;
 
+static struct golioth_client *client;
 K_SEM_DEFINE(connected, 0, 1);
-K_SEM_DEFINE(dfu_status_unreported, 1, 1);
 
 static k_tid_t _system_thread = 0;
 
@@ -49,21 +51,47 @@ void wake_system_thread(void)
 	k_wakeup(_system_thread);
 }
 
-static void golioth_on_connect(struct golioth_client *client)
+static void on_client_event(struct golioth_client *client,
+			    enum golioth_client_event event,
+			    void *arg)
 {
-	k_sem_give(&connected);
-	golioth_connection_led_set(1);
+	bool is_connected = (event == GOLIOTH_CLIENT_EVENT_CONNECTED);
 
-	LOG_INF("Registering observations with Golioth");
-	app_dfu_observe();
-	app_settings_observe();
-	app_rpc_observe();
-	app_state_observe();
-
-	if (k_sem_take(&dfu_status_unreported, K_NO_WAIT) == 0) {
-		/* Report firmware update status on first connect after power up */
-		app_dfu_report_state_to_golioth();
+	if (is_connected) {
+		k_sem_give(&connected);
+		golioth_connection_led_set(1);
 	}
+	LOG_INF("Golioth client %s", is_connected ? "connected" : "disconnected");
+}
+
+static void start_golioth_client(void)
+{
+	/* Get the client configuration from auto-loaded settings */
+	const struct golioth_client_config *client_config = golioth_sample_credentials_get();
+
+	/* Create and start a Golioth Client */
+	client = golioth_client_create(client_config);
+
+	/* Register Golioth on_connect callback */
+	golioth_client_register_event_callback(client, on_client_event, NULL);
+
+	/* Initialize DFU components */
+	golioth_fw_update_init(client, _current_version);
+
+
+	/*** Call Golioth APIs for other services in dedicated app files ***/
+
+	/* Observe State service data */
+	app_state_observe(client);
+
+	/* Initialize app work */
+	app_work_init(client);
+
+	/* Register Settings service */
+	app_settings_register(client);
+
+	/* Register RPC service */
+	app_rpc_register(client);
 }
 
 #ifdef CONFIG_SOC_NRF9160
@@ -72,7 +100,10 @@ static void process_lte_connected(void)
 	/* Change the state of the Internet LED on Ostentus */
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_internet_set(1);));
 
-	golioth_system_client_start();
+	if (!client) {
+		/* Create and start a Golioth Client */
+		start_golioth_client();
+	}
 }
 
 /**
@@ -195,24 +226,6 @@ int main(void)
 		LOG_ERR("Unable to configure LED for Golioth Logo");
 	}
 
-	/* Initialize app state */
-	app_state_init(client);
-
-	/* Initialize app work */
-	app_work_init(client);
-
-	/* Initialize DFU components */
-	app_dfu_init(client);
-
-	/* Initialize app settings */
-	app_settings_init(client);
-
-	/* Initialize app RPC */
-	app_rpc_init(client);
-
-	/* Register Golioth on_connect callback */
-	client->on_connect = golioth_on_connect;
-
 	/* Start LTE asynchronously if the nRF9160 is used
 	 * Golioth Client will start automatically when LTE connects
 	 */
@@ -227,7 +240,7 @@ int main(void)
 		}
 
 		/* Start Golioth client */
-		golioth_system_client_start();
+		start_golioth_client();
 
 		/* Block until connected to Golioth */
 		k_sem_take(&connected, K_FOREVER);
