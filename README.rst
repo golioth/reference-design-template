@@ -36,7 +36,7 @@ Use ``west`` to initialize and install
 .. code-block:: shell
 
    cd ~/golioth-reference-design-template
-   west init -m git@github.com:golioth/reference-design-template.git .
+   west init -m git@github.com:golioth/reference-design-template.git --mr v0.10.0 .
    west update
    west zephyr-export
    pip install -r deps/zephyr/scripts/requirements.txt
