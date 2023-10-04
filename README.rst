@@ -13,6 +13,9 @@ Design. It is set up as a standalone repository, with all Golioth features
 implemented in basic form. Search the project for the word ``template`` and
 ``rd_template`` and update those occurrences with your reference design's name.
 
+.. attention:: This is the BETA branch for using the Golioth Firmware SDK. The local setup
+   instructions include a branch directive in the ``west init`` command.
+
 Local set up
 ************
 
@@ -36,7 +39,7 @@ Use ``west`` to initialize and install
 .. code-block:: shell
 
    cd ~/golioth-reference-design-template
-   west init -m git@github.com:golioth/reference-design-template.git .
+   west init -m git@github.com:golioth/reference-design-template.git --mr beta/golioth-firmware-sdk .
    west update
    west zephyr-export
    pip install -r deps/zephyr/scripts/requirements.txt
@@ -57,7 +60,7 @@ functionality on this Reference Design.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"<your.semantic.version>\"
+   $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app --
    $ (.venv) west flash
 
 Configure PSK-ID and PSK using the device shell based on your Golioth
@@ -155,7 +158,7 @@ from above to provision this board after programming the firmware.)
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"<your.semantic.version>\"
+   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app --
    $ (.venv) west flash
 
 External Libraries
