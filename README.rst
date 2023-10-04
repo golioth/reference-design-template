@@ -52,12 +52,13 @@ successful build you will see a new ``build`` directory. Note that any changes
 cataloging all of the changes to the dependencies and the build (so no
 ``.gitignore`` is needed)
 
-During building, replace ``<your.semantic.version>`` to utilize the DFU
-functionality on this Reference Design.
+Prior to building, update ``CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION`` in the ``prj.conf`` file to
+reflect the firmware version number you want to assign to this build. Then run the following
+commands to build and program the firmware onto the device.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"<your.semantic.version>\"
+   $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app
    $ (.venv) west flash
 
 Configure PSK-ID and PSK using the device shell based on your Golioth
