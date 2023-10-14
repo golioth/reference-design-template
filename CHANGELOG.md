@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add support for the Aludel Elixir v1 (`aludel_elixir_v1`) board.
+
 ### Fixed
 
 - Fix typo (`app_sensors_read_and_steam` → `app_sensors_read_and_stream`)
