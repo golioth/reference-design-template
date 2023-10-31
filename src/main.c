@@ -30,6 +30,12 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include <modem/modem_info.h>
 #endif
 
+#define SUPERCON_I2C_PACKET_SIZE 36
+union superpacket {
+	uint8_t bytes[SUPERCON_I2C_PACKET_SIZE];
+	uint16_t points[SUPERCON_I2C_PACKET_SIZE / 2];
+} typedef SuperPacket;
+
 static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 
 K_SEM_DEFINE(connected, 0, 1);
@@ -187,6 +193,7 @@ int main(void)
 		led_bitmask(LED_POW | LED_BAT);
 		/* Show Golioth Logo on Ostentus ePaper screen */
 		show_splash();
+
 	));
 
 	/* Get system thread id so loop delay change event can wake main */
@@ -281,9 +288,16 @@ int main(void)
 		slideshow(30000);
 	));
 
+	SuperPacket packet;
 	while (true) {
-		app_work_sensor_read();
+		if (ostentus_i2c_readbyte(0xE0) == 1) {
+			ostentus_i2c_readarray(0xE1, packet.bytes, 36);
+			LOG_HEXDUMP_DBG(packet.points, sizeof(packet.points), "Packet as points");
+		}
+		k_sleep(K_SECONDS(2));
 
-		k_sleep(K_SECONDS(get_loop_delay_s()));
+		//app_work_sensor_read();
+
+		//k_sleep(K_SECONDS(get_loop_delay_s()));
 	}
 }
