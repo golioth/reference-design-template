@@ -200,14 +200,14 @@ int process_packet(SuperPacket packet) {
 		zcbor_tstr_put_lit(encoding_state, "name");
 		zcbor_tstr_put_term(encoding_state, &packet.bytes[SCB_NAME_BYTES_INDEX]);
 		zcbor_tstr_put_lit(encoding_state, "points");
-		zcbor_list_start_encode(encoding_state, 16);
+		zcbor_list_start_encode(encoding_state, 450);
 
 	} else if (packet.points[SCB_BLOCKNUM] == 65535) {
 		LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
 		for (uint8_t i = 0; i < 16; i++) {
 			zcbor_int_encode(encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
 		}
-		zcbor_list_end_encode(encoding_state, 16);
+		zcbor_list_end_encode(encoding_state, 450);
 		zcbor_map_end_encode(encoding_state, 3);
 
 		size_t cbor_payload_len = encoding_state->payload - cbor_payload;
