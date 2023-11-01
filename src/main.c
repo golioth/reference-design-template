@@ -203,7 +203,7 @@ int process_packet(SuperPacket packet) {
 		zcbor_list_start_encode(encoding_state, 450);
 
 	} else if (packet.points[SCB_BLOCKNUM] == 65535) {
-		LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
+		//LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
 		for (uint8_t i = 0; i < 16; i++) {
 			zcbor_int_encode(encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
 		}
@@ -211,8 +211,8 @@ int process_packet(SuperPacket packet) {
 		zcbor_map_end_encode(encoding_state, 3);
 
 		size_t cbor_payload_len = encoding_state->payload - cbor_payload;
-		LOG_DBG("cbor_layload_len: %d", cbor_payload_len);
-		LOG_HEXDUMP_DBG(cbor_payload, cbor_payload_len, "cbor");
+		//LOG_DBG("cbor_layload_len: %d", cbor_payload_len);
+		//LOG_HEXDUMP_DBG(cbor_payload, cbor_payload_len, "cbor");
 
 		int err = golioth_stream_push(client,
 					      "vectors",
@@ -221,10 +221,12 @@ int process_packet(SuperPacket packet) {
 					      cbor_payload_len);
 		if (err) {
 			LOG_ERR("Unable to stream cbor: %d", err);
+		} else {
+			LOG_INF("Successfully pushed capture");
 		}
 
 	} else {
-		LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
+		//LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
 		for (uint8_t i = 0; i < 16; i++) {
 			zcbor_int_encode(encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
 		}
