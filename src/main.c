@@ -16,6 +16,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include "app_state.h"
 #include "app_work.h"
 #include "dfu/app_dfu.h"
+#include "main.h"
 
 #ifdef CONFIG_LIB_OSTENTUS
 #include <libostentus.h>
@@ -29,12 +30,6 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #ifdef CONFIG_MODEM_INFO
 #include <modem/modem_info.h>
 #endif
-
-#define SUPERCON_I2C_PACKET_SIZE 36
-union superpacket {
-	uint8_t bytes[SUPERCON_I2C_PACKET_SIZE];
-	uint16_t points[SUPERCON_I2C_PACKET_SIZE / 2];
-} typedef SuperPacket;
 
 static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 
@@ -177,6 +172,66 @@ void golioth_connection_led_set(uint8_t state)
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_golioth_set(pin_state);));
 }
 
+#include <zcbor_common.h>
+
+uint8_t cbor_payload[1000] = {0};
+
+zcbor_state_t *encoding_state;
+
+int process_packet(SuperPacket packet) {
+	if (packet.points[SCB_BLOCKNUM] == 0) {
+		LOG_INF("UID: %d", packet.points[SCB_UID]);
+		LOG_INF("Block Number: %d", packet.points[SCB_BLOCKNUM]);
+		LOG_INF("Interval: %d", packet.points[SCB_INTERVAL]);
+		LOG_INF("Total Data Points: %d", packet.points[SCB_TOTALDATA]);
+		LOG_INF("Name: %s", &packet.bytes[SCB_NAME_BYTES_INDEX]);
+
+		ZCBOR_STATE_E(new_state, 8, cbor_payload, sizeof(cbor_payload), 0);
+
+		encoding_state = new_state;
+
+		zcbor_map_start_encode(encoding_state, 3);
+		zcbor_tstr_put_lit(encoding_state, "uid");
+		zcbor_int_encode(encoding_state, &packet.points[SCB_UID], 2);
+		zcbor_tstr_put_lit(encoding_state, "interval");
+		zcbor_int_encode(encoding_state, &packet.points[SCB_INTERVAL], 2);
+		zcbor_tstr_put_lit(encoding_state, "point_cnt");
+		zcbor_int_encode(encoding_state, &packet.points[SCB_TOTALDATA], 2);
+		zcbor_tstr_put_lit(encoding_state, "name");
+		zcbor_tstr_put_term(encoding_state, &packet.bytes[SCB_NAME_BYTES_INDEX]);
+		zcbor_tstr_put_lit(encoding_state, "points");
+		zcbor_list_start_encode(encoding_state, 16);
+
+	} else if (packet.points[SCB_BLOCKNUM] == 65535) {
+		LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
+		for (uint8_t i = 0; i < 16; i++) {
+			zcbor_int_encode(encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
+		}
+		zcbor_list_end_encode(encoding_state, 16);
+		zcbor_map_end_encode(encoding_state, 3);
+
+		size_t cbor_payload_len = encoding_state->payload - cbor_payload;
+		LOG_DBG("cbor_layload_len: %d", cbor_payload_len);
+		LOG_HEXDUMP_DBG(cbor_payload, cbor_payload_len, "cbor");
+
+		int err = golioth_stream_push(client,
+					      "vectors",
+					      GOLIOTH_CONTENT_FORMAT_APP_CBOR,
+					      cbor_payload,
+					      cbor_payload_len);
+		if (err) {
+			LOG_ERR("Unable to stream cbor: %d", err);
+		}
+
+	} else {
+		LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
+		for (uint8_t i = 0; i < 16; i++) {
+			zcbor_int_encode(encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
+		}
+	}
+	return 0;
+}
+
 int main(void)
 {
 	int err;
@@ -288,13 +343,15 @@ int main(void)
 		slideshow(30000);
 	));
 
+
 	SuperPacket packet;
 	while (true) {
 		if (ostentus_i2c_readbyte(0xE0) == 1) {
 			ostentus_i2c_readarray(0xE1, packet.bytes, 36);
-			LOG_HEXDUMP_DBG(packet.points, sizeof(packet.points), "Packet as points");
+			process_packet(packet);
+		} else {
+			k_sleep(K_SECONDS(1));
 		}
-		k_sleep(K_SECONDS(2));
 
 		//app_work_sensor_read();
 
