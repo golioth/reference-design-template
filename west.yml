@@ -37,7 +37,7 @@ manifest:
 
     - name: libostentus
       path: deps/modules/lib/libostentus
-      revision: v1.0.0
+      revision: szczys/add-reset-and-semver
       url: https://github.com/golioth/libostentus
 
     - name: zephyr-network-info
