@@ -233,7 +233,7 @@ int main(void)
 	/* If nRF9160 is not used, start the Golioth Client and block until connected */
 	if (!IS_ENABLED(CONFIG_SOC_NRF9160)) {
 		/* Run WiFi/DHCP if necessary */
-		if (IS_ENABLED(CONFIG_GOLIOTH_SAMPLES_COMMON)) {
+		if (IS_ENABLED(CONFIG_GOLIOTH_SAMPLE_COMMON)) {
 			net_connect();
 		}
 
