@@ -174,111 +174,118 @@ void golioth_connection_led_set(uint8_t state)
 
 #include <zcbor_common.h>
 #define DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK 100
-uint8_t cbor_payload[1000] = {0};
 
-zcbor_state_t *encoding_state;
-uint16_t cur_uid = 0;
-uint16_t cur_block = 0;
-uint16_t data_idx = 0;
+struct cbor_block {
+	uint8_t cbor_payload[1000];
+	zcbor_state_t *encoding_state;
+	uint16_t cur_uid;
+	uint16_t cur_block;
+	uint16_t data_idx;
+} CborBlockCtx;
+
+void reset_ctx(void) {
+	CborBlockCtx.cur_uid = 0;
+	CborBlockCtx.cur_block = 0;
+	CborBlockCtx.data_idx = 0;
+}
 
 int process_packet(SuperPacket packet) {
 	if (packet.points[SCB_BLOCKNUM] == 0) {
-		cur_uid = packet.points[SCB_UID];
-		LOG_INF("UID: %d", cur_uid);
+		CborBlockCtx.cur_uid = packet.points[SCB_UID];
+		LOG_INF("UID: %d", CborBlockCtx.cur_uid);
 		LOG_INF("Block Number: %d", packet.points[SCB_BLOCKNUM]);
 		LOG_INF("Interval: %d", packet.points[SCB_INTERVAL]);
 		LOG_INF("Total Data Points: %d", packet.points[SCB_TOTALDATA]);
 		LOG_INF("Name: %s", &packet.bytes[SCB_NAME_BYTES_INDEX]);
 
-		ZCBOR_STATE_E(new_state, 8, cbor_payload, sizeof(cbor_payload), 0);
+		reset_ctx();
+		ZCBOR_STATE_E(new_state, 8, CborBlockCtx.cbor_payload, sizeof(CborBlockCtx.cbor_payload), 0);
 
-		encoding_state = new_state;
+		CborBlockCtx.encoding_state = new_state;
 
-		zcbor_map_start_encode(encoding_state, 3);
-		zcbor_tstr_put_lit(encoding_state, "uid");
-		zcbor_int_encode(encoding_state, &cur_uid, 2);
-		zcbor_tstr_put_lit(encoding_state, "block_num");
-		zcbor_int_encode(encoding_state, &cur_block, 2);
-		zcbor_tstr_put_lit(encoding_state, "interval");
-		zcbor_int_encode(encoding_state, &packet.points[SCB_INTERVAL], 2);
-		zcbor_tstr_put_lit(encoding_state, "point_cnt");
-		zcbor_int_encode(encoding_state, &packet.points[SCB_TOTALDATA], 2);
-		zcbor_tstr_put_lit(encoding_state, "name");
-		zcbor_tstr_put_term(encoding_state, &packet.bytes[SCB_NAME_BYTES_INDEX]);
-		zcbor_tstr_put_lit(encoding_state, "points");
-		zcbor_list_start_encode(encoding_state, DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK + 50);
+		zcbor_map_start_encode(CborBlockCtx.encoding_state, 3);
+		zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "uid");
+		zcbor_int_encode(CborBlockCtx.encoding_state, &CborBlockCtx.cur_uid, 2);
+		zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "block_num");
+		zcbor_int_encode(CborBlockCtx.encoding_state, &CborBlockCtx.cur_block, 2);
+		zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "interval");
+		zcbor_int_encode(CborBlockCtx.encoding_state, &packet.points[SCB_INTERVAL], 2);
+		zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "point_cnt");
+		zcbor_int_encode(CborBlockCtx.encoding_state, &packet.points[SCB_TOTALDATA], 2);
+		zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "name");
+		zcbor_tstr_put_term(CborBlockCtx.encoding_state, &packet.bytes[SCB_NAME_BYTES_INDEX]);
+		zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "points");
+		zcbor_list_start_encode(CborBlockCtx.encoding_state, DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK + 50);
 
 	} else if (packet.points[SCB_BLOCKNUM] == 65535) {
 		//LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
 		for (uint8_t i = 0; i < 16; i++) {
-			zcbor_int_encode(encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
-			data_idx++;
+			zcbor_int_encode(CborBlockCtx.encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
+			CborBlockCtx.data_idx++;
 		}
-		zcbor_list_end_encode(encoding_state, DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK + 50);
-		zcbor_map_end_encode(encoding_state, 3);
+		zcbor_list_end_encode(CborBlockCtx.encoding_state, DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK + 50);
+		zcbor_map_end_encode(CborBlockCtx.encoding_state, 3);
 
-		size_t cbor_payload_len = encoding_state->payload - cbor_payload;
+		size_t cbor_payload_len = CborBlockCtx.encoding_state->payload - CborBlockCtx.cbor_payload;
 		LOG_DBG("cbor_layload_len: %d", cbor_payload_len);
-		LOG_HEXDUMP_DBG(cbor_payload, cbor_payload_len, "cbor");
+		LOG_HEXDUMP_DBG(CborBlockCtx.cbor_payload, cbor_payload_len, "cbor");
 
 		char endp[6];
-		snprintk(endp, sizeof(endp), "%d", cur_uid);
+		snprintk(endp, sizeof(endp), "%d", CborBlockCtx.cur_uid);
 
 		int err = golioth_stream_push(client,
 					      endp,
 					      GOLIOTH_CONTENT_FORMAT_APP_CBOR,
-					      cbor_payload,
+					      CborBlockCtx.cbor_payload,
 					      cbor_payload_len);
 		if (err) {
-			LOG_ERR("Unable to stream block %d cbor: %d", cur_block, err);
+			LOG_ERR("Unable to stream block %d cbor: %d", CborBlockCtx.cur_block, err);
 		} else {
-			LOG_INF("Successfully pushed block %d", cur_block);
+			LOG_INF("Successfully pushed block %d", CborBlockCtx.cur_block);
 		}
 
-		cur_uid = 0;
-		cur_block = 0;
-		data_idx = 0;
+		reset_ctx();
 
 	} else {
-		if (data_idx > DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK) {
-			zcbor_list_end_encode(encoding_state, DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK + 50);
-			zcbor_map_end_encode(encoding_state, 3);
+		if (CborBlockCtx.data_idx > DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK) {
+			zcbor_list_end_encode(CborBlockCtx.encoding_state, DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK + 50);
+			zcbor_map_end_encode(CborBlockCtx.encoding_state, 3);
 
-			size_t cbor_payload_len = encoding_state->payload - cbor_payload;
+			size_t cbor_payload_len = CborBlockCtx.encoding_state->payload - CborBlockCtx.cbor_payload;
 			char endp[6];
-			snprintk(endp, sizeof(endp), "%d", cur_uid);
+			snprintk(endp, sizeof(endp), "%d", CborBlockCtx.cur_uid);
 
 			int err = golioth_stream_push(client,
 						endp,
 						GOLIOTH_CONTENT_FORMAT_APP_CBOR,
-						cbor_payload,
+						CborBlockCtx.cbor_payload,
 						cbor_payload_len);
 			if (err) {
-				LOG_ERR("Unable to stream block %d cbor: %d", cur_block, err);
+				LOG_ERR("Unable to stream block %d cbor: %d", CborBlockCtx.cur_block, err);
 			} else {
-				LOG_INF("Successfully pushed block %d", cur_block);
+				LOG_INF("Successfully pushed block %d", CborBlockCtx.cur_block);
 			}
 
-			++cur_block;
-			data_idx = 0;
+			++CborBlockCtx.cur_block;
+			CborBlockCtx.data_idx = 0;
 
-			ZCBOR_STATE_E(new_state, 8, cbor_payload, sizeof(cbor_payload), 0);
+			ZCBOR_STATE_E(new_state, 8, CborBlockCtx.cbor_payload, sizeof(CborBlockCtx.cbor_payload), 0);
 
-			encoding_state = new_state;
+			CborBlockCtx.encoding_state = new_state;
 
-			zcbor_map_start_encode(encoding_state, 3);
-			zcbor_tstr_put_lit(encoding_state, "uid");
-			zcbor_int_encode(encoding_state, &cur_uid, 2);
-			zcbor_tstr_put_lit(encoding_state, "block_num");
-			zcbor_int_encode(encoding_state, &cur_block, 2);
-			zcbor_tstr_put_lit(encoding_state, "points");
-			zcbor_list_start_encode(encoding_state, 450);
+			zcbor_map_start_encode(CborBlockCtx.encoding_state, 3);
+			zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "uid");
+			zcbor_int_encode(CborBlockCtx.encoding_state, &CborBlockCtx.cur_uid, 2);
+			zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "block_num");
+			zcbor_int_encode(CborBlockCtx.encoding_state, &CborBlockCtx.cur_block, 2);
+			zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "points");
+			zcbor_list_start_encode(CborBlockCtx.encoding_state, 450);
 		}
 
 		//LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
 		for (uint8_t i = 0; i < 16; i++) {
-			zcbor_int_encode(encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
-			data_idx++;
+			zcbor_int_encode(CborBlockCtx.encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
+			CborBlockCtx.data_idx++;
 		}
 	}
 	return 0;
