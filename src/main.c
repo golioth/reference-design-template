@@ -177,10 +177,12 @@ void golioth_connection_led_set(uint8_t state)
 uint8_t cbor_payload[1000] = {0};
 
 zcbor_state_t *encoding_state;
+uint16_t cur_uid = 0;
 
 int process_packet(SuperPacket packet) {
 	if (packet.points[SCB_BLOCKNUM] == 0) {
-		LOG_INF("UID: %d", packet.points[SCB_UID]);
+		cur_uid = packet.points[SCB_UID];
+		LOG_INF("UID: %d", cur_uid);
 		LOG_INF("Block Number: %d", packet.points[SCB_BLOCKNUM]);
 		LOG_INF("Interval: %d", packet.points[SCB_INTERVAL]);
 		LOG_INF("Total Data Points: %d", packet.points[SCB_TOTALDATA]);
@@ -214,8 +216,11 @@ int process_packet(SuperPacket packet) {
 		//LOG_DBG("cbor_layload_len: %d", cbor_payload_len);
 		//LOG_HEXDUMP_DBG(cbor_payload, cbor_payload_len, "cbor");
 
+		char endp[6];
+		snprintk(endp, sizeof(endp), "%d", cur_uid);
+
 		int err = golioth_stream_push(client,
-					      "vectors",
+					      endp,
 					      GOLIOTH_CONTENT_FORMAT_APP_CBOR,
 					      cbor_payload,
 					      cbor_payload_len);
