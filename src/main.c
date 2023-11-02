@@ -173,11 +173,13 @@ void golioth_connection_led_set(uint8_t state)
 }
 
 #include <zcbor_common.h>
-
+#define DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK 100
 uint8_t cbor_payload[1000] = {0};
 
 zcbor_state_t *encoding_state;
 uint16_t cur_uid = 0;
+uint16_t cur_block = 0;
+uint16_t data_idx = 0;
 
 int process_packet(SuperPacket packet) {
 	if (packet.points[SCB_BLOCKNUM] == 0) {
@@ -194,7 +196,9 @@ int process_packet(SuperPacket packet) {
 
 		zcbor_map_start_encode(encoding_state, 3);
 		zcbor_tstr_put_lit(encoding_state, "uid");
-		zcbor_int_encode(encoding_state, &packet.points[SCB_UID], 2);
+		zcbor_int_encode(encoding_state, &cur_uid, 2);
+		zcbor_tstr_put_lit(encoding_state, "block_num");
+		zcbor_int_encode(encoding_state, &cur_block, 2);
 		zcbor_tstr_put_lit(encoding_state, "interval");
 		zcbor_int_encode(encoding_state, &packet.points[SCB_INTERVAL], 2);
 		zcbor_tstr_put_lit(encoding_state, "point_cnt");
@@ -202,19 +206,20 @@ int process_packet(SuperPacket packet) {
 		zcbor_tstr_put_lit(encoding_state, "name");
 		zcbor_tstr_put_term(encoding_state, &packet.bytes[SCB_NAME_BYTES_INDEX]);
 		zcbor_tstr_put_lit(encoding_state, "points");
-		zcbor_list_start_encode(encoding_state, 450);
+		zcbor_list_start_encode(encoding_state, DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK + 50);
 
 	} else if (packet.points[SCB_BLOCKNUM] == 65535) {
 		//LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
 		for (uint8_t i = 0; i < 16; i++) {
 			zcbor_int_encode(encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
+			data_idx++;
 		}
-		zcbor_list_end_encode(encoding_state, 450);
+		zcbor_list_end_encode(encoding_state, DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK + 50);
 		zcbor_map_end_encode(encoding_state, 3);
 
 		size_t cbor_payload_len = encoding_state->payload - cbor_payload;
-		//LOG_DBG("cbor_layload_len: %d", cbor_payload_len);
-		//LOG_HEXDUMP_DBG(cbor_payload, cbor_payload_len, "cbor");
+		LOG_DBG("cbor_layload_len: %d", cbor_payload_len);
+		LOG_HEXDUMP_DBG(cbor_payload, cbor_payload_len, "cbor");
 
 		char endp[6];
 		snprintk(endp, sizeof(endp), "%d", cur_uid);
@@ -225,15 +230,55 @@ int process_packet(SuperPacket packet) {
 					      cbor_payload,
 					      cbor_payload_len);
 		if (err) {
-			LOG_ERR("Unable to stream cbor: %d", err);
+			LOG_ERR("Unable to stream block %d cbor: %d", cur_block, err);
 		} else {
-			LOG_INF("Successfully pushed capture");
+			LOG_INF("Successfully pushed block %d", cur_block);
 		}
 
+		cur_uid = 0;
+		cur_block = 0;
+		data_idx = 0;
+
 	} else {
+		if (data_idx > DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK) {
+			zcbor_list_end_encode(encoding_state, DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK + 50);
+			zcbor_map_end_encode(encoding_state, 3);
+
+			size_t cbor_payload_len = encoding_state->payload - cbor_payload;
+			char endp[6];
+			snprintk(endp, sizeof(endp), "%d", cur_uid);
+
+			int err = golioth_stream_push(client,
+						endp,
+						GOLIOTH_CONTENT_FORMAT_APP_CBOR,
+						cbor_payload,
+						cbor_payload_len);
+			if (err) {
+				LOG_ERR("Unable to stream block %d cbor: %d", cur_block, err);
+			} else {
+				LOG_INF("Successfully pushed block %d", cur_block);
+			}
+
+			++cur_block;
+			data_idx = 0;
+
+			ZCBOR_STATE_E(new_state, 8, cbor_payload, sizeof(cbor_payload), 0);
+
+			encoding_state = new_state;
+
+			zcbor_map_start_encode(encoding_state, 3);
+			zcbor_tstr_put_lit(encoding_state, "uid");
+			zcbor_int_encode(encoding_state, &cur_uid, 2);
+			zcbor_tstr_put_lit(encoding_state, "block_num");
+			zcbor_int_encode(encoding_state, &cur_block, 2);
+			zcbor_tstr_put_lit(encoding_state, "points");
+			zcbor_list_start_encode(encoding_state, 450);
+		}
+
 		//LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
 		for (uint8_t i = 0; i < 16; i++) {
 			zcbor_int_encode(encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
+			data_idx++;
 		}
 	}
 	return 0;
