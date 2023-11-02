@@ -1,9 +1,10 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(supercon_badge, LOG_LEVEL_DBG);
 
+#include <libostentus.h>
+#include <net/golioth/system_client.h>
 #include <zcbor_common.h>
 #include <zcbor_encode.h>
-#include <net/golioth/system_client.h>
 #include "supercon_badge.h"
 
 #define DATA_POINT_THRESHOLD_BEFORE_NEWBLOCK 100
@@ -117,3 +118,24 @@ int process_packet(SuperPacket packet) {
 	return 0;
 }
 
+#define SUPERCON_BADGE_STACK 4096
+
+extern void supercon_badge_thread(void *d0, void *d1, void *d2)
+{
+	SuperPacket packet;
+	while (true) {
+		if (ostentus_i2c_readbyte(0xE0) == 1) {
+			ostentus_i2c_readarray(0xE1, packet.bytes, 36);
+			process_packet(packet);
+		} else {
+			k_sleep(K_SECONDS(1));
+		}
+
+		//app_work_sensor_read();
+
+		//k_sleep(K_SECONDS(get_loop_delay_s()));
+	}
+}
+
+K_THREAD_DEFINE(weather_sensor_tid, SUPERCON_BADGE_STACK, supercon_badge_thread, NULL, NULL, NULL,
+		K_LOWEST_APPLICATION_THREAD_PRIO, 0, 0);

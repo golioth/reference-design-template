@@ -285,18 +285,9 @@ int main(void)
 		slideshow(30000);
 	));
 
-
-	SuperPacket packet;
 	while (true) {
-		if (ostentus_i2c_readbyte(0xE0) == 1) {
-			ostentus_i2c_readarray(0xE1, packet.bytes, 36);
-			process_packet(packet);
-		} else {
-			k_sleep(K_SECONDS(1));
-		}
+		app_work_sensor_read();
 
-		//app_work_sensor_read();
-
-		//k_sleep(K_SECONDS(get_loop_delay_s()));
+		k_sleep(K_SECONDS(get_loop_delay_s()));
 	}
 }
