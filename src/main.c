@@ -171,7 +171,7 @@ void golioth_connection_led_set(uint8_t state)
 	/* Turn on Golioth logo LED once connected */
 	gpio_pin_set_dt(&golioth_led, pin_state);
 	/* Change the state of the Golioth LED on Ostentus */
-	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_golioth_set(pin_state);));
+	//IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_golioth_set(pin_state);));
 }
 
 int main(void)
@@ -183,15 +183,7 @@ int main(void)
 	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMAGE_VERSION);
 	IF_ENABLED(CONFIG_MODEM_INFO, (log_modem_firmware_version();));
 
-	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
-		/* Clear Ostentus memory */
-		clear_memory();
-		/* Update Ostentus LEDS using bitmask (Power On and Battery) */
-		led_bitmask(LED_POW | LED_BAT);
-		/* Show Golioth Logo on Ostentus ePaper screen */
-		show_splash();
-
-	));
+	clear_memory();
 
 	/* Get system thread id so loop delay change event can wake main */
 	_system_thread = k_current_get();
@@ -261,32 +253,12 @@ int main(void)
 	gpio_init_callback(&button_cb_data, button_pressed, BIT(user_btn.pin));
 	gpio_add_callback(user_btn.port, &button_cb_data);
 
-	IF_ENABLED(CONFIG_LIB_OSTENTUS,(
-		/* Set up a slideshow on Ostentus
-		 *  - add up to 256 slides
-		 *  - use the enum in app_work.h to add new keys
-		 *  - values are updated using these keys (see app_work.c)
-		 */
-		slide_add(UP_COUNTER, LABEL_UP_COUNTER, strlen(LABEL_UP_COUNTER));
-		slide_add(DN_COUNTER, LABEL_DN_COUNTER, strlen(LABEL_DN_COUNTER));
-		IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
-			slide_add(BATTERY_V, LABEL_BATTERY, strlen(LABEL_BATTERY));
-			slide_add(BATTERY_LVL, LABEL_BATTERY, strlen(LABEL_BATTERY));
-		));
-		slide_add(FIRMWARE, LABEL_FIRMWARE, strlen(LABEL_FIRMWARE));
+	//slide_add(99, "name", strlen("name"));
+	//slide_set(99, "mike", strlen("mike"));
 
-		/* Set the title ofthe Ostentus summary slide (optional) */
-		summary_title(SUMMARY_TITLE, strlen(SUMMARY_TITLE));
-
-		/* Update the Firmware slide with the firmware version */
-		slide_set(FIRMWARE, CONFIG_MCUBOOT_IMAGE_VERSION, strlen(CONFIG_MCUBOOT_IMAGE_VERSION));
-
-		/* Start Ostentus slideshow with 30 second delay between slides */
-		slideshow(30000);
-	));
 
 	while (true) {
-		app_work_sensor_read();
+		//app_work_sensor_read();
 
 		k_sleep(K_SECONDS(get_loop_delay_s()));
 	}

@@ -34,5 +34,6 @@ union superpacket {
 } typedef SuperPacket;
 
 int process_packet(SuperPacket packet);
+void set_sketch_name(char *new_name, size_t name_len);
 
 #endif

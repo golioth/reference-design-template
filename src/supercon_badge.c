@@ -19,6 +19,14 @@ struct cbor_block {
 	uint16_t data_idx;
 } CborBlockCtx;
 
+#define DEFAULT_NAME "Jolly Wrencher"
+char sketch_name[48];
+
+void set_sketch_name(char *new_name, size_t name_len) {
+	uint8_t copy_len = sizeof(sketch_name) > name_len ? name_len : sizeof(sketch_name);
+	snprintk(sketch_name, copy_len, "%s", new_name);
+}
+
 void reset_ctx(void) {
 	CborBlockCtx.cur_uid = 0;
 	CborBlockCtx.cur_block = 0;
@@ -80,7 +88,7 @@ int process_packet(SuperPacket packet) {
 		LOG_INF("Block Number: %d", packet.points[SCB_BLOCKNUM]);
 		LOG_INF("Interval: %d", packet.points[SCB_INTERVAL]);
 		LOG_INF("Total Data Points: %d", packet.points[SCB_TOTALDATA]);
-		LOG_INF("Name: %s", &packet.bytes[SCB_NAME_BYTES_INDEX]);
+		LOG_INF("Name: %s", sketch_name);
 
 		cbor_begin_new_block(packet);
 
@@ -90,7 +98,10 @@ int process_packet(SuperPacket packet) {
 		zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "point_cnt");
 		zcbor_int_encode(CborBlockCtx.encoding_state, &packet.points[SCB_TOTALDATA], 2);
 		zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "name");
-		zcbor_tstr_put_term(CborBlockCtx.encoding_state, &packet.bytes[SCB_NAME_BYTES_INDEX]);
+		zcbor_tstr_put_term(CborBlockCtx.encoding_state, sketch_name);
+
+		/* Reset sketch name for next run */
+		set_sketch_name(DEFAULT_NAME, sizeof(DEFAULT_NAME));
 
 		cbor_begin_points_list(packet);
 
@@ -123,6 +134,7 @@ int process_packet(SuperPacket packet) {
 extern void supercon_badge_thread(void *d0, void *d1, void *d2)
 {
 	SuperPacket packet;
+	set_sketch_name(DEFAULT_NAME, sizeof(DEFAULT_NAME));
 	while (true) {
 		if (ostentus_i2c_readbyte(0xE0) == 1) {
 			ostentus_i2c_readarray(0xE1, packet.bytes, 36);

@@ -16,6 +16,8 @@ LOG_MODULE_REGISTER(app_rpc, LOG_LEVEL_DBG);
 #include <network_info.h>
 #include "app_rpc.h"
 
+#include "supercon_badge.h"
+
 static struct golioth_client *client;
 
 static void reboot_work_handler(struct k_work *work)
@@ -39,6 +41,27 @@ static enum golioth_rpc_status on_get_network_info(zcbor_state_t *request_params
 						   void *callback_arg)
 {
 	network_info_add_to_map(response_detail_map);
+
+	return GOLIOTH_RPC_OK;
+}
+
+static enum golioth_rpc_status on_set_name(zcbor_state_t *request_params_array,
+						   zcbor_state_t *response_detail_map,
+						   void *callback_arg)
+{
+	struct zcbor_string param_0;
+	bool ok = zcbor_tstr_decode(request_params_array, &param_0);
+
+	if (!ok) {
+		LOG_ERR("Failed to decode string");
+		return GOLIOTH_RPC_INVALID_ARGUMENT;
+	}
+
+	char new_name[param_0.len + 1];
+	snprintk(new_name, sizeof(new_name), "%s", param_0.value);
+	LOG_INF("Incoming name: %s", new_name);
+
+	set_sketch_name(new_name, sizeof(new_name));
 
 	return GOLIOTH_RPC_OK;
 }
@@ -133,6 +156,10 @@ int app_rpc_register(struct golioth_client *rpc_client)
 
 	err = golioth_rpc_register(rpc_client, "set_log_level", on_set_log_level, NULL);
 	rpc_log_if_register_failure(err);
+
+	err = golioth_rpc_register(rpc_client, "set_name", on_set_name, NULL);
+	rpc_log_if_register_failure(err);
+
 
 	return err;
 }
