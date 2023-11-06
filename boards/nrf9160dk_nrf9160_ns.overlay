@@ -9,6 +9,8 @@
 		click-uart = &arduino_serial;
 		click-i2c = &arduino_i2c;
 		golioth-led = &led2;
+		user-btn = &button1;
+
 	};
 };
 
