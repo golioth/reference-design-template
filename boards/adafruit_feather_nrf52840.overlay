@@ -1,0 +1,20 @@
+/* Copyright (c) 2020 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
+/ {
+	chosen {
+		zephyr,entropy = &rng;
+	};
+
+	aliases {
+		golioth-led = &led1;
+		user-btn = &button0;
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
+
