@@ -28,6 +28,7 @@ manifest:
           - tfm-mcuboot
           - tinycrypt
           - trusted-firmware-m
+          - openthread
           - zcbor
 
     - name: golioth-zephyr-boards
