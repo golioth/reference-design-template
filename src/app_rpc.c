@@ -13,7 +13,10 @@ LOG_MODULE_REGISTER(app_rpc, LOG_LEVEL_DBG);
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/sys/reboot.h>
 
+#ifdef CONFIG_NETWORK_INFO
 #include <network_info.h>
+#endif
+
 #include "app_rpc.h"
 
 static struct golioth_client *client;
@@ -34,6 +37,7 @@ static void reboot_work_handler(struct k_work *work)
 }
 K_WORK_DEFINE(reboot_work, reboot_work_handler);
 
+#ifdef CONFIG_NETWORK_INFO
 static enum golioth_rpc_status on_get_network_info(zcbor_state_t *request_params_array,
 						   zcbor_state_t *response_detail_map,
 						   void *callback_arg)
@@ -42,6 +46,7 @@ static enum golioth_rpc_status on_get_network_info(zcbor_state_t *request_params
 
 	return GOLIOTH_RPC_OK;
 }
+#endif
 
 static enum golioth_rpc_status on_set_log_level(zcbor_state_t *request_params_array,
 						zcbor_state_t *response_detail_map,
@@ -125,8 +130,10 @@ int app_rpc_register(struct golioth_client *rpc_client)
 {
 	int err;
 
-	err = golioth_rpc_register(rpc_client, "get_network_info", on_get_network_info, NULL);
-	rpc_log_if_register_failure(err);
+	IF_ENABLED(CONFIG_NETWORK_INFO,(
+		err = golioth_rpc_register(rpc_client, "get_network_info", on_get_network_info, NULL);
+		rpc_log_if_register_failure(err);
+		));
 
 	err = golioth_rpc_register(rpc_client, "reboot", on_reboot, NULL);
 	rpc_log_if_register_failure(err);
