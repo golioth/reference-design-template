@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "zephyr/sys/util_macro.h"
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 
@@ -30,6 +31,54 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include <modem/modem_info.h>
 #endif
 
+#ifdef CONFIG_NET_L2_OPENTHREAD
+#include <zephyr/net/openthread.h>
+#include <openthread/thread.h>
+#include <zephyr/net/coap.h>
+#include <zephyr/net/socket.h>
+
+static struct k_work on_connect_work;
+static struct k_work on_disconnect_work;
+
+static void on_ot_connect(struct k_work *item)
+{
+	ARG_UNUSED(item);
+
+	LOG_INF("OpenThread on connect");
+}
+
+static void on_ot_disconnect(struct k_work *item)
+{
+	ARG_UNUSED(item);
+
+	LOG_INF("OpenThread on disconnect");
+}
+
+static void on_thread_state_changed(otChangedFlags flags, struct openthread_context *ot_context,
+				    void *user_data)
+{
+	if (flags & OT_CHANGED_THREAD_ROLE) {
+		switch (otThreadGetDeviceRole(ot_context->instance)) {
+		case OT_DEVICE_ROLE_CHILD:
+		case OT_DEVICE_ROLE_ROUTER:
+		case OT_DEVICE_ROLE_LEADER:
+			k_work_submit(&on_connect_work);
+			break;
+
+		case OT_DEVICE_ROLE_DISABLED:
+		case OT_DEVICE_ROLE_DETACHED:
+		default:
+			k_work_submit(&on_disconnect_work);
+			break;
+		}
+	}
+}
+
+static struct openthread_state_changed_cb ot_state_chaged_cb = {
+	.state_changed_cb = on_thread_state_changed
+};
+#endif
+
 static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 
 K_SEM_DEFINE(connected, 0, 1);
@@ -38,7 +87,8 @@ K_SEM_DEFINE(dfu_status_unreported, 1, 1);
 static k_tid_t _system_thread = 0;
 
 static const struct gpio_dt_spec golioth_led = GPIO_DT_SPEC_GET(DT_ALIAS(golioth_led), gpios);
-static const struct gpio_dt_spec user_btn = GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios);
+static const struct gpio_dt_spec user_btn = GPIO_DT_SPEC_GET(DT_ALIAS(user_btn), gpios);
+
 static struct gpio_callback button_cb_data;
 
 /* forward declarations */
@@ -171,11 +221,20 @@ void golioth_connection_led_set(uint8_t state)
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_golioth_set(pin_state);));
 }
 
+
 int main(void)
 {
-	int err;
+	int err = 0;
 
 	LOG_DBG("Start Reference Design Template sample");
+
+	IF_ENABLED(CONFIG_NET_L2_OPENTHREAD, (
+		k_work_init(&on_connect_work, on_ot_connect);
+		k_work_init(&on_disconnect_work, on_ot_disconnect);
+
+		openthread_state_changed_cb_register(openthread_get_default_context(), &ot_state_chaged_cb);
+		openthread_start(openthread_get_default_context());
+	));
 
 	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMAGE_VERSION);
 	IF_ENABLED(CONFIG_MODEM_INFO, (log_modem_firmware_version();));
