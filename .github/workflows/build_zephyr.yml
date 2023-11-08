@@ -1,3 +1,6 @@
+# Copyright (c) 2023 Golioth, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 name: Build Zephyr binaries
 
 on:
@@ -46,7 +49,7 @@ jobs:
 
       - name: Create filename prefix
         run: echo "PREFIX=golioth-${{ github.event.repository.name }}-${{ inputs.BOARD }}" >> "$GITHUB_ENV"
-      
+
       - name: Generate short SHA
         uses: benjlevesque/short-sha@v2.2
 
