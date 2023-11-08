@@ -45,7 +45,7 @@ jobs:
 
       - name: Build with West
         run: |
-          west build -p -b ${{ inputs.BOARD }} app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"0.0.0\"
+          west build -p -b ${{ inputs.BOARD }} app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"0.0.0\"
 
       - name: Create filename prefix
         run: echo "PREFIX=golioth-${{ github.event.repository.name }}-${{ inputs.BOARD }}" >> "$GITHUB_ENV"

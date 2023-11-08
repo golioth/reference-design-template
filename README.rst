@@ -57,7 +57,7 @@ functionality on this Reference Design.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"<your.semantic.version>\"
+   $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"<your.semantic.version>\"
    $ (.venv) west flash
 
 Configure PSK-ID and PSK using the device shell based on your Golioth
@@ -155,7 +155,7 @@ from above to provision this board after programming the firmware.)
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app -- -DCONFIG_MCUBOOT_IMAGE_VERSION=\"<your.semantic.version>\"
+   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"<your.semantic.version>\"
    $ (.venv) west flash
 
 External Libraries
