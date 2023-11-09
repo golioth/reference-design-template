@@ -63,9 +63,9 @@ jobs:
         run: |
           cd build/zephyr
           mkdir -p artifacts
-          mv merged.hex     ./artifacts/golioth_${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}_full.hex
-          mv app_update.bin ./artifacts/golioth_${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}_update.bin
-          mv zephyr.elf     ./artifacts/golioth_${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}.elf
+          mv merged.hex     ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}_full.hex
+          mv app_update.bin ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}_update.bin
+          mv zephyr.elf     ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}.elf
 
       # Run IDs are unique per repo but are reused on re-runs
       - name: Save artifact
