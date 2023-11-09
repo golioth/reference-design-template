@@ -28,7 +28,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    container: ghcr.io/beriberikix/golioth-zephyr-base:${{ inputs.ZEPHYR_SDK }}sdk
+    container: golioth/golioth-zephyr-base:${{ inputs.ZEPHYR_SDK }}-SDK-v0
 
     env:
       ZEPHYR_SDK_INSTALL_DIR: /opt/toolchains/zephyr-sdk-${{ inputs.ZEPHYR_SDK }}
