@@ -58,18 +58,14 @@ jobs:
         run: |
           west build -p -b ${{ inputs.BOARD }} app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"0.0.0\"
 
-      - name: Create filename prefix
-        if: inputs.ARTIFACT == true
-        run: echo echo "PREFIX=golioth_${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}" >> "$GITHUB_ENV"
-
       - name: Prepare artifacts
         if: inputs.ARTIFACT == true && inputs.TAG != ''
         run: |
           cd build/zephyr
           mkdir -p artifacts
-          mv merged.hex     ./artifacts/$PREFIX_full.hex
-          mv app_update.bin ./artifacts/$PREFIX_update.bin
-          mv zephyr.elf     ./artifacts/$PREFIX.elf
+          mv merged.hex     ./artifacts/golioth_${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}_full.hex
+          mv app_update.bin ./artifacts/golioth_${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}_update.bin
+          mv zephyr.elf     ./artifacts/golioth_${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}.elf
 
       # Run IDs are unique per repo but are reused on re-runs
       - name: Save artifact
