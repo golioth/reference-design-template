@@ -42,7 +42,7 @@ jobs:
                 path: ~/artifacts
 
             - name: Create Release manually with GH CLI
-              run: gh release create --draft ${{ inputs.version }}
+              run: gh release create --title ${{ inputs.version }} --draft ${{ inputs.version }}
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
