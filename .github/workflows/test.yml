@@ -17,7 +17,10 @@ jobs:
         BOARD: aludel_mini_v1_sparkfun9160_ns
 
     steps:
-      -  uses: ./.github/workflows/build_zephyr.yml
-         with:
-           ZEPHYR_SDK: ${{ github.env.ZEPHYR_SDK }}
-           BOARD: ${{ github.env.BOARD }}
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - uses: ./.github/workflows/build_zephyr.yml
+        with:
+          ZEPHYR_SDK: ${{ github.env.ZEPHYR_SDK }}
+          BOARD: ${{ github.env.BOARD }}
