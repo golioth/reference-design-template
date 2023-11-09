@@ -58,10 +58,13 @@ jobs:
         run: |
           west build -p -b ${{ inputs.BOARD }} app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"0.0.0\"
 
+      - name: Create filename prefix
+        if: inputs.ARTIFACT == true
+        run: echo echo "PREFIX=golioth_${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}" >> "$GITHUB_ENV"
+
       - name: Prepare artifacts
         if: inputs.ARTIFACT == true && inputs.TAG != ''
         run: |
-          echo "PREFIX=golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}" >> "$GITHUB_ENV"
           cd build/zephyr
           mkdir -p artifacts
           mv merged.hex     ./artifacts/${{ github.env.PREFIX }}_full.hex
