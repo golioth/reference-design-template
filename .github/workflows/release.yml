@@ -38,6 +38,7 @@ jobs:
         with:
           ZEPHYR_SDK: ${{ matrix.ZEPHYR_SDK }}
           BOARD: ${{ matrix.BOARD }}
+          ARTIFACT: true
 
     upload-binaries:
         needs: build-binaries

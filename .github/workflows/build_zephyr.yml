@@ -14,6 +14,10 @@ on:
         required: true
         type: string
         default: aludel_mini_v1_sparkfun9160_ns
+      ARTIFACT:
+        required: true
+        type: boolean
+        default: false
 
   workflow_call:
     inputs:
@@ -23,6 +27,9 @@ on:
       BOARD:
         required: true
         type: string
+      ARTIFACT: 
+        required: true
+        type: boolean
 
 jobs:
   build:
@@ -48,12 +55,15 @@ jobs:
           west build -p -b ${{ inputs.BOARD }} app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"0.0.0\"
 
       - name: Create filename prefix
+        if: inputs.ARTIFACT == true
         run: echo "PREFIX=golioth-${{ github.event.repository.name }}-${{ inputs.BOARD }}" >> "$GITHUB_ENV"
 
       - name: Generate short SHA
+        if: inputs.ARTIFACT == true
         uses: benjlevesque/short-sha@v2.2
 
       - name: Prepare artifacts
+        if: inputs.ARTIFACT == true
         run: |
           cd build/zephyr
           mkdir -p artifacts
@@ -63,6 +73,7 @@ jobs:
 
       # Run IDs are unique per repo but are reused on re-runs
       - name: Save artifact
+        if: inputs.ARTIFACT == true
         uses: actions/upload-artifact@v3
         with:
           name: build_artifacts_${{ github.run_id }}
