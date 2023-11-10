@@ -60,6 +60,7 @@ jobs:
 
       - name: Prepare artifacts
         if: inputs.ARTIFACT == true && inputs.TAG != ''
+
         run: |
           cd build/zephyr
           mkdir -p artifacts
