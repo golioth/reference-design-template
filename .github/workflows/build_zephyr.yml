@@ -18,6 +18,8 @@ on:
         required: true
         type: boolean
         default: false
+      TAG:
+        type: string
 
   workflow_call:
     inputs:
@@ -30,6 +32,8 @@ on:
       ARTIFACT: 
         required: true
         type: boolean
+      TAG:
+        type: string
 
 jobs:
   build:
@@ -54,22 +58,15 @@ jobs:
         run: |
           west build -p -b ${{ inputs.BOARD }} app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"0.0.0\"
 
-      - name: Create filename prefix
-        if: inputs.ARTIFACT == true
-        run: echo "PREFIX=golioth-${{ github.event.repository.name }}-${{ inputs.BOARD }}" >> "$GITHUB_ENV"
-
-      - name: Generate short SHA
-        if: inputs.ARTIFACT == true
-        uses: benjlevesque/short-sha@v2.2
-
       - name: Prepare artifacts
-        if: inputs.ARTIFACT == true
+        if: inputs.ARTIFACT == true && inputs.TAG != ''
+
         run: |
           cd build/zephyr
           mkdir -p artifacts
-          mv merged.hex     ./artifacts/${{ env.PREFIX }}_full_${{ env.SHA }}.hex
-          mv app_update.bin ./artifacts/${{ env.PREFIX }}_update_${{ env.SHA }}.bin
-          mv zephyr.elf     ./artifacts/${{ env.PREFIX }}_${{ env.SHA }}.elf
+          mv merged.hex     ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}_full.hex
+          mv app_update.bin ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}_update.bin
+          mv zephyr.elf     ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ inputs.BOARD }}.elf
 
       # Run IDs are unique per repo but are reused on re-runs
       - name: Save artifact
