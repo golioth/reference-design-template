@@ -40,7 +40,7 @@ void cbor_begin_new_block(SuperPacket packet) {
 
 	zcbor_map_start_encode(CborBlockCtx.encoding_state, 3);
 	zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "uid");
-	zcbor_int_encode(CborBlockCtx.encoding_state, &CborBlockCtx.cur_uid, 2);
+	zcbor_uint32_put(CborBlockCtx.encoding_state, CborBlockCtx.cur_uid);
 	zcbor_tstr_put_lit(CborBlockCtx.encoding_state, "block_num");
 	zcbor_int_encode(CborBlockCtx.encoding_state, &CborBlockCtx.cur_block, 2);
 }
@@ -65,11 +65,8 @@ void cbor_add_points(SuperPacket packet) {
 void push_cbor(SuperPacket packet) {
 	size_t cbor_payload_len = CborBlockCtx.encoding_state->payload - CborBlockCtx.cbor_payload;
 
-	char endp[6];
-	snprintk(endp, sizeof(endp), "%d", CborBlockCtx.cur_uid);
-
 	int err = golioth_stream_push(client,
-					endp,
+					"",
 					GOLIOTH_CONTENT_FORMAT_APP_CBOR,
 					CborBlockCtx.cbor_payload,
 					cbor_payload_len);
