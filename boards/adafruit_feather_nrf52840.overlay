@@ -6,6 +6,7 @@
 / {
 	chosen {
 		zephyr,entropy = &rng;
+		nordic,pm-ext-flash = &gd25q16;
 	};
 
 	aliases {

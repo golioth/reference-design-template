@@ -1,0 +1,12 @@
+/ {
+	chosen {
+		nordic,pm-ext-flash = &gd25q16;
+	};
+
+
+	aliases {
+		mcuboot-button0 = &button0;
+	};
+};
+
+
