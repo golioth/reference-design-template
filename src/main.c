@@ -205,7 +205,7 @@ int process_packet(SuperPacket packet) {
 		zcbor_list_start_encode(encoding_state, 450);
 
 	} else if (packet.points[SCB_BLOCKNUM] == 65535) {
-		//LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
+		LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
 		for (uint8_t i = 0; i < 16; i++) {
 			zcbor_int_encode(encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
 		}
@@ -213,8 +213,8 @@ int process_packet(SuperPacket packet) {
 		zcbor_map_end_encode(encoding_state, 3);
 
 		size_t cbor_payload_len = encoding_state->payload - cbor_payload;
-		//LOG_DBG("cbor_layload_len: %d", cbor_payload_len);
-		//LOG_HEXDUMP_DBG(cbor_payload, cbor_payload_len, "cbor");
+		LOG_DBG("cbor_layload_len: %d", cbor_payload_len);
+		LOG_HEXDUMP_DBG(cbor_payload, cbor_payload_len, "cbor");
 
 		char endp[6];
 		snprintk(endp, sizeof(endp), "%d", cur_uid);
@@ -231,11 +231,57 @@ int process_packet(SuperPacket packet) {
 		}
 
 	} else {
-		//LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
+		LOG_HEXDUMP_INF(packet.points, sizeof(packet.points), "Points as INT");
 		for (uint8_t i = 0; i < 16; i++) {
 			zcbor_int_encode(encoding_state, &packet.points[SCB_POINTS_INT + i], 2);
 		}
 	}
+	return 0;
+}
+
+#define MAX_DUMMY 180
+uint16_t _dummy_cnt;
+
+int get_dummy_data(char *arr)
+{
+	if (_dummy_cnt > MAX_DUMMY) {
+		return -ENODATA;
+	}
+
+	int i;
+
+	arr[0] = 42;
+	arr[1] = 24;
+	if (_dummy_cnt == MAX_DUMMY - 1) {
+		arr[2] = 0xff;
+		arr[3] = 0xff;
+	} else {
+		arr[2] = _dummy_cnt >> 8;
+		arr[3] = (uint8_t)_dummy_cnt & 0xff;
+	}
+
+	if (_dummy_cnt == 0) {
+		arr[4] = 0;
+		arr[5] = 50;
+		arr[6] = 0x19;
+		arr[7] = 0x50;
+		arr[8] = 'M';
+		arr[9] = 'i';
+		arr[10] = 'k';
+		arr[11] = 'e';
+		arr[12] = '\0';
+
+		for (i = 13; i < 36; i++) {
+			arr[i] = 0;
+		}
+
+	} else {
+		for (i = 4; i < 36; i++) {
+			arr[i] = 0;
+		}
+	}
+
+	_dummy_cnt++;
 	return 0;
 }
 
@@ -350,16 +396,16 @@ int main(void)
 		slideshow(30000);
 	));
 
+	k_sem_take(&connected, K_FOREVER);
 
 	SuperPacket packet;
 	while (true) {
-		if (ostentus_i2c_readbyte(0xE0) == 1) {
-			ostentus_i2c_readarray(0xE1, packet.bytes, 36);
+
+		if (get_dummy_data(packet.bytes) == 0) {
 			process_packet(packet);
 		} else {
-			k_sleep(K_SECONDS(1));
+			k_sleep(K_SECONDS(30)); _dummy_cnt = 0;
 		}
-
 		//app_work_sensor_read();
 
 		//k_sleep(K_SECONDS(get_loop_delay_s()));
