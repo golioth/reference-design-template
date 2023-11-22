@@ -29,7 +29,7 @@ on:
       BOARD:
         required: true
         type: string
-      ARTIFACT: 
+      ARTIFACT:
         required: true
         type: boolean
       TAG:
@@ -45,9 +45,13 @@ jobs:
       ZEPHYR_SDK_INSTALL_DIR: /opt/toolchains/zephyr-sdk-${{ inputs.ZEPHYR_SDK }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: app
       - name: Setup West workspace
         run: |
-          west init -m https://github.com/$GITHUB_REPOSITORY .
+          west init -l app
           west update --narrow -o=--depth=1
           west zephyr-export
           pip3 install -r deps/zephyr/scripts/requirements-base.txt
