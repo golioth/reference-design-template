@@ -37,7 +37,7 @@ manifest:
 
     - name: libostentus
       path: deps/modules/lib/libostentus
-      revision: v1.0.0
+      revision: fe776798c0a4bfd1789b22a52433aa2e0f481d0c
       url: https://github.com/golioth/libostentus
 
     - name: zephyr-network-info

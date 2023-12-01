@@ -260,20 +260,15 @@ int main(void)
 		 *  - use the enum in app_work.h to add new keys
 		 *  - values are updated using these keys (see app_work.c)
 		 */
-		slide_add(UP_COUNTER, LABEL_UP_COUNTER, strlen(LABEL_UP_COUNTER));
-		slide_add(DN_COUNTER, LABEL_DN_COUNTER, strlen(LABEL_DN_COUNTER));
-		IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
-			slide_add(BATTERY_V, LABEL_BATTERY, strlen(LABEL_BATTERY));
-			slide_add(BATTERY_LVL, LABEL_BATTERY, strlen(LABEL_BATTERY));
-		));
-		slide_add(FIRMWARE, LABEL_FIRMWARE, strlen(LABEL_FIRMWARE));
 
 		/* Set the title ofthe Ostentus summary slide (optional) */
 		summary_title(SUMMARY_TITLE, strlen(SUMMARY_TITLE));
 
-		/* Update the Firmware slide with the firmware version */
-		slide_set(FIRMWARE, CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION,
-			  strlen(CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION));
+		char slide_buf[16];
+		for (int i = 0; i < NUM_SLIDES; i++) {
+			snprintk(slide_buf, sizeof(slide_buf), "Slide %d", i);
+			slide_add(i, slide_buf, strlen(slide_buf));
+		}
 
 		/* Start Ostentus slideshow with 30 second delay between slides */
 		slideshow(30000);
