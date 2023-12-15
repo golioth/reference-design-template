@@ -9,12 +9,41 @@
 		click-uart = &arduino_serial;
 		click-i2c = &arduino_i2c;
 		golioth-led = &led2;
+		rfid-led = &led3;
+		click-spi = &arduino_spi;
+		rfid-wakeup-pin = &rfid_wakeup_pin;
+		rfid-data-ready-pin = &rfid_data_ready_pin;
 	};
+
+	gpios {
+		compatible = "gpio-keys";
+		
+		rfid_wakeup_pin: rfid_wakeup_pin {
+			gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;   /* IN1 */
+		};
+
+		rfid_data_ready_pin: rfid_data_ready_pin {
+			gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;   /* IN0 */
+		};
+
+	};
+
 };
 
 &arduino_i2c {
 	/* Needed for I2C writes used by libostentus */
 	zephyr,concat-buf-size = <48>;
+};
+
+arduino_spi: &spi3 {
+	status = "okay";
+	cs-gpios = <&arduino_header 16 GPIO_ACTIVE_LOW>; /* D10 */
+	
+	rfid_click: rfid_click@0 {
+		compatible = "rfid,click";
+		spi-max-frequency = <1000000>;
+		reg = <0>;
+	};
 };
 
 &pinctrl {
@@ -58,4 +87,24 @@
 			low-power-enable;
 		};
 	};
+	
+	spi3_default: spi3_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 0, 13)>,
+				<NRF_PSEL(SPIM_MISO, 0, 12)>,
+				<NRF_PSEL(SPIM_MOSI, 0, 11)>;
+			bias-pull-up;
+			nordic,drive-mode = <NRF_DRIVE_H0H1>;
+		};
+	};
+
+	spi3_sleep: spi3_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 0, 13)>,
+				<NRF_PSEL(SPIM_MISO, 0, 12)>,
+				<NRF_PSEL(SPIM_MOSI, 0, 11)>;
+			low-power-enable;
+		};
+	};
+
 };
