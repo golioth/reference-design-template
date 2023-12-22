@@ -13,6 +13,4 @@ config DNS_SERVER1
 
 endif # DNS_RESOLVER
 
-rsource "src/battery_monitor/Kconfig"
-
 source "Kconfig.zephyr"
