@@ -110,6 +110,9 @@ int main(void)
 	char json_buf[32];
 	uint8_t counter = 0;
 
+	ostentus_version_get(json_buf, sizeof(json_buf));
+	LOG_INF("Ostentus Firmware Version: %s", json_buf);
+
 	while (true) {
 		led_power_set(counter % 2);
 		snprintk(json_buf, sizeof(json_buf), "%d", counter);
