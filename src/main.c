@@ -62,7 +62,6 @@ int main(void)
 		led_bitmask(LED_POW | LED_BAT);
 		/* Show Golioth Logo on Ostentus ePaper screen */
 		show_splash();
-
 	));
 
 	/* Get system thread id so loop delay change event can wake main */
@@ -112,7 +111,7 @@ int main(void)
 	uint8_t counter = 0;
 
 	while (true) {
-
+		led_power_set(counter % 2);
 		snprintk(json_buf, sizeof(json_buf), "%d", counter);
 		slide_set(UP_COUNTER, json_buf, strlen(json_buf));
 		snprintk(json_buf, sizeof(json_buf), "%d", 255 - counter);
