@@ -37,7 +37,7 @@ manifest:
 
     - name: libostentus
       path: deps/modules/lib/libostentus
-      revision: v1.0.0
+      revision: b8eaae79ae2873ed7f11c7f307d51d8374b9ae47
       url: https://github.com/golioth/libostentus
 
   self:
