@@ -16,6 +16,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include <zephyr/drivers/gpio.h>
 
 static k_tid_t _system_thread = 0;
+bool button_reset_pressed;
 
 static const struct gpio_dt_spec golioth_led = GPIO_DT_SPEC_GET(DT_ALIAS(golioth_led), gpios);
 static const struct gpio_dt_spec user_btn = GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios);
@@ -36,6 +37,7 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t
 	/* This function is an Interrupt Service Routine. Do not call functions that
 	 * use other threads, or perform long-running operations here
 	 */
+	button_reset_pressed = true;
 	k_wakeup(_system_thread);
 }
 
@@ -114,7 +116,13 @@ int main(void)
 	LOG_INF("Ostentus Firmware Version: %s", json_buf);
 
 	while (true) {
-		led_power_set(counter % 2);
+		if ((button_reset_pressed) || (counter > 0x1D)) {
+			/* Reset when all lights but Golioth are on */
+			counter = 0;
+			button_reset_pressed = false;
+			ostentus_reset();
+		}
+		led_bitmask(counter);
 		snprintk(json_buf, sizeof(json_buf), "%d", counter);
 		slide_set(UP_COUNTER, json_buf, strlen(json_buf));
 		snprintk(json_buf, sizeof(json_buf), "%d", 255 - counter);
