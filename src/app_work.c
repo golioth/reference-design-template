@@ -9,6 +9,7 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 
 #include <net/golioth/system_client.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/sensor.h>
 
 #include "app_work.h"
 
@@ -21,6 +22,9 @@ LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
 
 static struct golioth_client *client;
 /* Add Sensor structs here */
+#if DT_HAS_COMPAT_STATUS_OKAY(maxim_max17262)
+const struct device *const fuel_gauge_dev = DEVICE_DT_GET_ONE(maxim_max17262);
+#endif /* DT_HAS_COMPAT_STATUS_OKAY(maxim_max17262) */
 
 /* Formatting string for sending sensor JSON to Golioth */
 #define JSON_FMT "{\"counter\":%d}"
@@ -41,6 +45,25 @@ void app_work_sensor_read(void)
 {
 	int err;
 	char json_buf[256];
+#if DT_HAS_COMPAT_STATUS_OKAY(maxim_max17262)
+	struct sensor_value voltage, avg_current, temperature;
+	float i_avg;
+
+	if (!device_is_ready(fuel_gauge_dev)) {
+		printk("sensor: device not ready.\n");
+		return;
+	}
+
+	sensor_sample_fetch(fuel_gauge_dev);
+	sensor_channel_get(fuel_gauge_dev, SENSOR_CHAN_GAUGE_VOLTAGE, &voltage);
+	sensor_channel_get(fuel_gauge_dev, SENSOR_CHAN_GAUGE_AVG_CURRENT, &avg_current);
+	sensor_channel_get(fuel_gauge_dev, SENSOR_CHAN_GAUGE_TEMP, &temperature);
+
+	i_avg = avg_current.val1 + (avg_current.val2 / 1000000.0);
+
+	LOG_DBG("MAX17262: Voltage: %d.%06d V; Current: %f mA; Temperature: %d.%06d °C",
+		voltage.val1, voltage.val2, (double)i_avg, temperature.val1, temperature.val2);
+#endif /* DT_HAS_COMPAT_STATUS_OKAY(maxim_max17262) */
 
 	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
 		read_and_report_battery();
