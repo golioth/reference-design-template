@@ -60,7 +60,7 @@ jobs:
 
       - name: Build with West
         run: |
-          west build -p -b ${{ inputs.BOARD }} app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"0.0.0\"
+          west build -p -b ${{ inputs.BOARD }} app
 
       - name: Prepare artifacts
         if: inputs.ARTIFACT == true && inputs.TAG != ''
