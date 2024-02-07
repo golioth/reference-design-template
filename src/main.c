@@ -182,28 +182,31 @@ int main(void)
 		LOG_ERR("Unable to configure LED for Golioth Logo");
 	}
 
-	/* Start LTE asynchronously if the nRF9160 is used
+#ifdef CONFIG_SOC_NRF9160
+	/* Start LTE asynchronously if the nRF9160 is used.
 	 * Golioth Client will start automatically when LTE connects
 	 */
-	IF_ENABLED(CONFIG_SOC_NRF9160, (LOG_INF("Connecting to LTE, this may take some time...");
-					lte_lc_init_and_connect_async(lte_handler);));
 
+	LOG_INF("Connecting to LTE, this may take some time...");
+	lte_lc_init_and_connect_async(lte_handler);
+
+#else
 	/* If nRF9160 is not used, start the Golioth Client and block until connected */
-	if (!IS_ENABLED(CONFIG_SOC_NRF9160)) {
-		/* Run WiFi/DHCP if necessary */
-		if (IS_ENABLED(CONFIG_GOLIOTH_SAMPLES_COMMON)) {
-			net_connect();
-		}
 
-		/* Start Golioth client */
-		start_golioth_client();
-
-		/* Block until connected to Golioth */
-		k_sem_take(&connected, K_FOREVER);
-
-		/* Turn on Golioth logo LED once connected */
-		gpio_pin_set_dt(&golioth_led, 1);
+	/* Run WiFi/DHCP if necessary */
+	if (IS_ENABLED(CONFIG_GOLIOTH_SAMPLES_COMMON)) {
+		net_connect();
 	}
+
+	/* Start Golioth client */
+	start_golioth_client();
+
+	/* Block until connected to Golioth */
+	k_sem_take(&connected, K_FOREVER);
+
+	/* Turn on Golioth logo LED once connected */
+	gpio_pin_set_dt(&golioth_led, 1);
+#endif /* CONFIG_SOC_NRF9160 */
 
 	/* Set up user button */
 	err = gpio_pin_configure_dt(&user_btn, GPIO_INPUT);
