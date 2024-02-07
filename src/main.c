@@ -13,11 +13,13 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include "app_work.h"
 #include <golioth/client.h>
 #include <golioth/fw_update.h>
-#include <modem/lte_lc.h>
 #include <samples/common/net_connect.h>
 #include <samples/common/sample_credentials.h>
 #include <zephyr/kernel.h>
 
+#ifdef CONFIG_SOC_NRF9160
+#include <modem/lte_lc.h>
+#endif
 #ifdef CONFIG_LIB_OSTENTUS
 #include <libostentus.h>
 #endif
@@ -95,71 +97,25 @@ static void start_golioth_client(void)
 }
 
 #ifdef CONFIG_SOC_NRF9160
-static void process_lte_connected(void)
-{
-	/* Change the state of the Internet LED on Ostentus */
-	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_internet_set(1);));
 
-	if (!client) {
-		/* Create and start a Golioth Client */
-		start_golioth_client();
-	}
-}
-
-/**
- * @brief Perform actions based on LTE connection events
- *
- * This is copied from the Golioth samples/common/nrf91_lte_monitor.c to allow us to perform custom
- * actions (turn on LED and start Golioth client) when a network connection becomes available.
- *
- * Set `CONFIG_GOLIOTH_SAMPLE_NRF91_LTE_MONITOR=n` so that the common sample code doesn't collide.
- *
- * @param evt
- */
 static void lte_handler(const struct lte_lc_evt *const evt)
 {
-	switch (evt->type) {
-	case LTE_LC_EVT_NW_REG_STATUS:
-		switch (evt->nw_reg_status) {
-		case LTE_LC_NW_REG_NOT_REGISTERED:
-			LOG_INF("Network: Not registered");
-			break;
-		case LTE_LC_NW_REG_REGISTERED_HOME:
-			LOG_INF("Network: Registered (home)");
-			process_lte_connected();
-			break;
-		case LTE_LC_NW_REG_SEARCHING:
-			LOG_INF("Network: Searching");
-			break;
-		case LTE_LC_NW_REG_REGISTRATION_DENIED:
-			LOG_INF("Network: Registration denied");
-			break;
-		case LTE_LC_NW_REG_UNKNOWN:
-			LOG_INF("Network: Unknown");
-			break;
-		case LTE_LC_NW_REG_REGISTERED_ROAMING:
-			LOG_INF("Network: Registered (roaming)");
-			process_lte_connected();
-			break;
-		case LTE_LC_NW_REG_UICC_FAIL:
-			LOG_INF("Network: UICC fail");
-			break;
+	if (evt->type == LTE_LC_EVT_NW_REG_STATUS) {
+
+		if ((evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_HOME) ||
+		    (evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_ROAMING)) {
+
+			/* Change the state of the Internet LED on Ostentus */
+			IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_internet_set(1);));
+
+			if (!client) {
+				/* Create and start a Golioth Client */
+				start_golioth_client();
+			}
 		}
-		break;
-	case LTE_LC_EVT_RRC_UPDATE:
-		switch (evt->rrc_mode) {
-		case LTE_LC_RRC_MODE_CONNECTED:
-			LOG_DBG("RRC: Connected");
-			break;
-		case LTE_LC_RRC_MODE_IDLE:
-			LOG_DBG("RRC: Idle");
-			break;
-		}
-		break;
-	default:
-		break;
 	}
 }
+
 #endif /* CONFIG_SOC_NRF9160 */
 
 #ifdef CONFIG_MODEM_INFO
