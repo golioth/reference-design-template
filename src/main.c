@@ -11,6 +11,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include <net/golioth/system_client.h>
 #include <samples/common/net_connect.h>
 #include <zephyr/net/coap.h>
+#include <app_version.h>
 #include "app_rpc.h"
 #include "app_settings.h"
 #include "app_state.h"
@@ -29,6 +30,11 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #ifdef CONFIG_MODEM_INFO
 #include <modem/modem_info.h>
 #endif
+
+/* Macrobatics to convert APP_BUILD_VERSION to a string */
+#define _STR(s)			 #s
+#define STR(s)			 _STR(s)
+#define APP_BUILD_VERSION_STRING STR(APP_BUILD_VERSION)
 
 static struct golioth_client *client = GOLIOTH_SYSTEM_CLIENT_GET();
 
@@ -174,7 +180,9 @@ int main(void)
 
 	LOG_DBG("Start Reference Design Template sample");
 
-	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION);
+	LOG_INF("App version: %s", APP_VERSION_STRING);
+	LOG_INF("App build version: %s", APP_BUILD_VERSION_STRING);
+	LOG_INF("MCUboot version: %s", CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION);
 	IF_ENABLED(CONFIG_MODEM_INFO, (log_modem_firmware_version();));
 
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
@@ -272,8 +280,7 @@ int main(void)
 		summary_title(SUMMARY_TITLE, strlen(SUMMARY_TITLE));
 
 		/* Update the Firmware slide with the firmware version */
-		slide_set(FIRMWARE, CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION,
-			  strlen(CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION));
+		slide_set(FIRMWARE, APP_VERSION_STRING, strlen(APP_VERSION_STRING));
 
 		/* Start Ostentus slideshow with 30 second delay between slides */
 		slideshow(30000);
