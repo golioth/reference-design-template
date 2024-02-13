@@ -203,9 +203,6 @@ int main(void)
 
 	/* Block until connected to Golioth */
 	k_sem_take(&connected, K_FOREVER);
-
-	/* Turn on Golioth logo LED once connected */
-	gpio_pin_set_dt(&golioth_led, 1);
 #endif /* CONFIG_SOC_NRF9160 */
 
 	/* Set up user button */
