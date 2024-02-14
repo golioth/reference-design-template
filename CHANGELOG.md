@@ -7,6 +7,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [template_v2.0.0] - 2024-02-21
+
+### Breaking Changes
+
+- Migrate to Golioth Firmware SDK at v0.10.0
+    - All header file and API call names have changed
+    - Many Golioth Kconfig symbols have changed
+    - OTA firmware update code is greatly simplified
+
+### Added
+
+- GitHub Actions workflows to build release binaries
+
+### Changed
+
+- Firmware version number is now passed as a symbol in the prj.conf file and not as a build argument
+- Use LTE Link handler from Golioth Common Library
+    - The majority of LTE Link handler callback is logging so this has been reused from the common
+      library
+    - An additional callback is registered in the application just to service on-connect events
+- Board definitions related to Ostentus face place moved to a common file that may be included when
+  needed
+
 ## [template_v1.2.0] - 2023-11-08
 
 ### Added
