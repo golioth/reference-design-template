@@ -88,7 +88,7 @@ static void app_state_desired_handler(struct golioth_client *client,
 				      size_t payload_size,
 				      void *arg)
 {
-	int err;
+	int err = 0;
 	int ret;
 
 	if (response->status != GOLIOTH_OK) {
