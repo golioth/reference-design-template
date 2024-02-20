@@ -14,7 +14,7 @@ LOG_MODULE_REGISTER(app_state, LOG_LEVEL_DBG);
 #include "json_helper.h"
 
 #include "app_state.h"
-#include "app_work.h"
+#include "app_sensors.h"
 
 #define DEVICE_STATE_FMT "{\"example_int0\":%d,\"example_int1\":%d}"
 
