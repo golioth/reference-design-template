@@ -10,7 +10,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include "app_rpc.h"
 #include "app_settings.h"
 #include "app_state.h"
-#include "app_work.h"
+#include "app_sensors.h"
 #include <golioth/client.h>
 #include <golioth/fw_update.h>
 #include <samples/common/net_connect.h>
@@ -87,7 +87,7 @@ static void start_golioth_client(void)
 	app_state_observe(client);
 
 	/* Initialize app work */
-	app_work_init(client);
+	app_sensors_init(client);
 
 	/* Register Settings service */
 	app_settings_register(client);
@@ -226,8 +226,8 @@ int main(void)
 	IF_ENABLED(CONFIG_LIB_OSTENTUS,(
 		/* Set up a slideshow on Ostentus
 		 *  - add up to 256 slides
-		 *  - use the enum in app_work.h to add new keys
-		 *  - values are updated using these keys (see app_work.c)
+		 *  - use the enum in app_sensors.h to add new keys
+		 *  - values are updated using these keys (see app_sensors.c)
 		 */
 		slide_add(UP_COUNTER, LABEL_UP_COUNTER, strlen(LABEL_UP_COUNTER));
 		slide_add(DN_COUNTER, LABEL_DN_COUNTER, strlen(LABEL_DN_COUNTER));
@@ -249,7 +249,7 @@ int main(void)
 	));
 
 	while (true) {
-		app_work_sensor_read();
+		app_sensors_read_and_steam();
 
 		k_sleep(K_SECONDS(get_loop_delay_s()));
 	}

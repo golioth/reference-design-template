@@ -5,14 +5,14 @@
  */
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(app_work, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 
 #include <golioth/client.h>
 #include <golioth/stream.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 
-#include "app_work.h"
+#include "app_sensors.h"
 
 #ifdef CONFIG_LIB_OSTENTUS
 #include <libostentus.h>
@@ -42,7 +42,7 @@ static void async_error_handler(struct golioth_client *client,
 
 /* This will be called by the main() loop */
 /* Do all of your work here! */
-void app_work_sensor_read(void)
+void app_sensors_read_and_steam(void)
 {
 	int err;
 	char json_buf[256];
@@ -77,7 +77,7 @@ void app_work_sensor_read(void)
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
 		/* Update slide values on Ostentus
 		 *  -values should be sent as strings
-		 *  -use the enum from app_work.h for slide key values
+		 *  -use the enum from app_sensors.h for slide key values
 		 */
 		snprintk(json_buf, sizeof(json_buf), "%d", counter);
 		slide_set(UP_COUNTER, json_buf, strlen(json_buf));
@@ -87,7 +87,7 @@ void app_work_sensor_read(void)
 	++counter;
 }
 
-void app_work_init(struct golioth_client *work_client)
+void app_sensors_init(struct golioth_client *work_client)
 {
 	client = work_client;
 }

@@ -4,26 +4,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef __APP_WORK_H__
-#define __APP_WORK_H__
+#ifndef __APP_SENSORS_H__
+#define __APP_SENSORS_H__
 
-/** The `app_work.c` file performs the important work of this application which
- * is to read sensor values and report them to the Golioth LightDB Stream as
- * time-series data.
+/** The `app_sensors.c` file performs the important work of this application
+ * which is to read sensor values and report them to the Golioth LightDB Stream
+ * as time-series data.
  *
  * For this demonstration, a `counter` value is periodically logged and pushed
  * to the Golioth time-series database. This simulated sensor reading occurs
- * when the loop in `main.c` calls `app_work_sensor_read()`. The frequency of
- * this loop is determined by values received from the Golioth Settings Service
- * (see app_settings.h).
+ * when the loop in `main.c` calls `app_sensors_read_and_steam()`. The frequency
+ * of this loop is determined by values received from the Golioth Settings
+ * Service (see app_settings.h).
  *
  * https://docs.golioth.io/firmware/zephyr-device-sdk/light-db-stream/
  */
 
 #include <golioth/client.h>
 
-void app_work_init(struct golioth_client *work_client);
-void app_work_sensor_read(void);
+void app_sensors_init(struct golioth_client *work_client);
+void app_sensors_read_and_steam(void);
 
 #define LABEL_UP_COUNTER "Counter"
 #define LABEL_DN_COUNTER "Anti-counter"
@@ -45,4 +45,4 @@ typedef enum {
 	FIRMWARE
 } slide_key;
 
-#endif /* __APP_WORK_H__ */
+#endif /* __APP_SENSORS_H__ */

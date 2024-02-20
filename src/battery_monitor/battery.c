@@ -19,7 +19,7 @@
 #include <golioth/stream.h>
 
 #include "battery_monitor/battery.h"
-#include "../app_work.h"
+#include "../app_sensors.h"
 
 LOG_MODULE_REGISTER(battery, LOG_LEVEL_DBG);
 
