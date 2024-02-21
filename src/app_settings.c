@@ -25,6 +25,7 @@ static enum golioth_settings_status on_loop_delay_setting(int32_t new_value, voi
 {
 	_loop_delay_s = new_value;
 	LOG_INF("Set loop delay to %i seconds", new_value);
+	wake_system_thread();
 	return GOLIOTH_SETTINGS_SUCCESS;
 }
 
