@@ -249,7 +249,7 @@ int main(void)
 	));
 
 	while (true) {
-		app_sensors_read_and_steam();
+		app_sensors_read_and_stream();
 
 		k_sleep(K_SECONDS(get_loop_delay_s()));
 	}
