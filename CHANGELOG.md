@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix typo (`app_sensors_read_and_steam` → `app_sensors_read_and_stream`)
 
+### Removed
+
+- Remove unused `click-i2c` alias from nRF DK boards.
+
 ## [template_v2.0.0] - 2024-02-21
 
 ### Breaking Changes
