@@ -42,7 +42,7 @@ static void async_error_handler(struct golioth_client *client,
 
 /* This will be called by the main() loop */
 /* Do all of your work here! */
-void app_sensors_read_and_steam(void)
+void app_sensors_read_and_stream(void)
 {
 	int err;
 	char json_buf[256];

@@ -13,9 +13,9 @@
  *
  * For this demonstration, a `counter` value is periodically logged and pushed
  * to the Golioth time-series database. This simulated sensor reading occurs
- * when the loop in `main.c` calls `app_sensors_read_and_steam()`. The frequency
- * of this loop is determined by values received from the Golioth Settings
- * Service (see app_settings.h).
+ * when the loop in `main.c` calls `app_sensors_read_and_stream()`. The
+ * frequency of this loop is determined by values received from the Golioth
+ * Settings Service (see app_settings.h).
  *
  * https://docs.golioth.io/firmware/zephyr-device-sdk/light-db-stream/
  */
@@ -23,7 +23,7 @@
 #include <golioth/client.h>
 
 void app_sensors_init(struct golioth_client *work_client);
-void app_sensors_read_and_steam(void);
+void app_sensors_read_and_stream(void);
 
 #define LABEL_UP_COUNTER "Counter"
 #define LABEL_DN_COUNTER "Anti-counter"
