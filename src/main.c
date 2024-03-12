@@ -86,7 +86,7 @@ static void start_golioth_client(void)
 	/* Observe State service data */
 	app_state_observe(client);
 
-	/* Initialize app work */
+	/* Initialize app sensors */
 	app_sensors_init(client);
 
 	/* Register Settings service */

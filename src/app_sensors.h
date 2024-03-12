@@ -22,7 +22,7 @@
 
 #include <golioth/client.h>
 
-void app_sensors_init(struct golioth_client *work_client);
+void app_sensors_init(struct golioth_client *sensors_client);
 void app_sensors_read_and_stream(void);
 
 #define LABEL_UP_COUNTER "Counter"
