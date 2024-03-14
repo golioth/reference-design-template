@@ -86,8 +86,8 @@ static void start_golioth_client(void)
 	/* Observe State service data */
 	app_state_observe(client);
 
-	/* Initialize app sensors */
-	app_sensors_init(client);
+	/* Set Golioth Client for streaming sensor data */
+	app_sensors_set_client(client);
 
 	/* Register Settings service */
 	app_settings_register(client);

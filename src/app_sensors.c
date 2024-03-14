@@ -87,7 +87,7 @@ void app_sensors_read_and_stream(void)
 	++counter;
 }
 
-void app_sensors_init(struct golioth_client *sensors_client)
+void app_sensors_set_client(struct golioth_client *sensors_client)
 {
 	client = sensors_client;
 }
