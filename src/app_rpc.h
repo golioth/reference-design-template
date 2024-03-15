@@ -22,6 +22,6 @@
 
 #include <golioth/client.h>
 
-int app_rpc_register(struct golioth_client *client);
+void app_rpc_register(struct golioth_client *client);
 
 #endif /* __APP_RPC_H__ */
