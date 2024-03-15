@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `app_sensors_read_and_stream`, so any sensor initialization should moved to a
   separate function (e.g. `app_sensors_init`) that runs before
   `app_sensors_read_and_stream`.
+- Upgrade to Golioth Firmware SDK at v0.11.0
 
 ### Removed
 
