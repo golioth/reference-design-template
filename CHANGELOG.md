@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix typo (`app_sensors_read_and_steam` → `app_sensors_read_and_stream`)
+- Fix RPC registration error handling
 
 ### Changed
 
