@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add support for the Aludel Elixir v1 (`aludel_elixir_v1`) board.
+- Add support for the Aludel Elixir (`aludel_elixir_ns`) board.
 
 ### Fixed
 
