@@ -1,0 +1,30 @@
+From b7fd666bc2c249da8c7bfc5c4db8e4fce1fdfea0 Mon Sep 17 00:00:00 2001
+From: Mike Szczys <mike@golioth.io>
+Date: Mon, 12 Feb 2024 14:53:49 -0600
+Subject: [PATCH] net: coap: add TOO_MANY_REQUESTS to return codes
+
+Add COAP_RESPONSE_CODE_TOO_MANY_REQUESTS to coap_header_get_code(). CoAP
+4.29 response code for "Too many requests" is defined in coap.h but was
+missing from the list of cases, resulting in a 0 being returned instead
+of the proper code.
+
+Signed-off-by: Mike Szczys <mike@golioth.io>
+---
+ subsys/net/lib/coap/coap.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/subsys/net/lib/coap/coap.c b/subsys/net/lib/coap/coap.c
+index e3427844bb5..f7ac6c72912 100644
+--- a/subsys/net/lib/coap/coap.c
++++ b/subsys/net/lib/coap/coap.c
+@@ -1005,6 +1005,7 @@ uint8_t coap_header_get_code(const struct coap_packet *cpkt)
+ 	case COAP_RESPONSE_CODE_REQUEST_TOO_LARGE:
+ 	case COAP_RESPONSE_CODE_UNSUPPORTED_CONTENT_FORMAT:
+ 	case COAP_RESPONSE_CODE_UNPROCESSABLE_ENTITY:
++	case COAP_RESPONSE_CODE_TOO_MANY_REQUESTS:
+ 	case COAP_RESPONSE_CODE_INTERNAL_ERROR:
+ 	case COAP_RESPONSE_CODE_NOT_IMPLEMENTED:
+ 	case COAP_RESPONSE_CODE_BAD_GATEWAY:
+-- 
+2.44.0
+
