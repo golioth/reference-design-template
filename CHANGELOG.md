@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix typo (`app_sensors_read_and_steam` → `app_sensors_read_and_stream`)
 - Fix RPC registration error handling
+- Fix an issue on boards using LTE connectivity where the Golioth Client was not
+  started automatically (see
+  https://github.com/golioth/reference-design-template/pull/92 for details).
 
 ### Changed
 
