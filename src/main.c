@@ -94,6 +94,7 @@ static void start_golioth_client(void)
 	/* Register Settings service */
 	app_settings_register(client);
 
+
 	/* Register RPC service */
 	app_rpc_register(client);
 }
@@ -253,10 +254,22 @@ int main(void)
 		/* Start Ostentus slideshow with 30 second delay between slides */
 		slideshow(30000);
 	));
+	static int start_cnt = 0;
+	static int stop_cnt = 0;
+	k_sem_take(&connected, K_FOREVER);
 
 	while (true) {
-		app_sensors_read_and_stream();
 
-		k_sleep(K_SECONDS(get_loop_delay_s()));
+		golioth_client_stop(client);
+		stop_cnt++;
+		LOG_INF("\n DEBUG: stop counter = %d", stop_cnt);
+
+		k_sleep(K_SECONDS(60));
+
+		golioth_client_start(client);
+		start_cnt++;
+		LOG_INF("\n DEBUG: start counter = %d", start_cnt);
+
+		k_sleep(K_SECONDS(60));
 	}
 }
