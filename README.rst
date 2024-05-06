@@ -151,12 +151,13 @@ Nordic nRF9160 DK
 
 This reference design may be built for the `Nordic nRF9160 DK`_.
 
-Use the following commands to build and program. (Use the same console commands
-from above to provision this board after programming the firmware.)
+Prior to building, update ``CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION`` in the ``prj.conf`` file to
+reflect the firmware version number you want to assign to this build. Then run the following
+commands to build and program the firmware onto the device.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app -- -DCONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION=\"<your.semantic.version>\"
+   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app
    $ (.venv) west flash
 
 External Libraries
