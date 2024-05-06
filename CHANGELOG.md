@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [template_v2.1.0] 2024-05-06
 
 ### Added
 
@@ -23,12 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Upgrade to Golioth Firmware SDK at v0.12.2
 - Change `app_sensors_init` to `app_sensors_set_client`. On cellular boards,
   `app_sensors_set_client` is not guaranteed to run before
   `app_sensors_read_and_stream`, so any sensor initialization should moved to a
   separate function (e.g. `app_sensors_init`) that runs before
   `app_sensors_read_and_stream`.
-- Upgrade to Golioth Firmware SDK at v0.11.0
 
 ### Removed
 
