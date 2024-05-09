@@ -46,5 +46,10 @@ manifest:
       revision: v1.1.1
       url: https://github.com/golioth/zephyr-network-info
 
+    - name: reference-design-common
+      path: deps/modules/lib/reference-design-common
+      revision: 73843d3d0e41e31715d6f663eb87b3d0724ed532
+      url: https://github.com/golioth/reference-design-common
+
   self:
     path: app

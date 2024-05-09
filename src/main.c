@@ -16,6 +16,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include <samples/common/net_connect.h>
 #include <samples/common/sample_credentials.h>
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/pwm.h>
 
 #ifdef CONFIG_SOC_NRF9160
 #include <modem/lte_lc.h>
@@ -32,6 +33,18 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #ifdef CONFIG_MODEM_INFO
 #include <modem/modem_info.h>
 #endif
+
+#ifdef CONFIG_PWM_BUZZER
+#include <pwm_buzzer.h>
+#endif /* CONFIG_PWM_BUZZER */
+
+#ifdef CONFIG_PWM_BUZZER_SONGS
+#include <pwm_buzzer_songs.h>
+#endif /* CONFIG_PWM_BUZZER_SONGS */
+
+#if DT_NODE_EXISTS(DT_ALIAS(pwm_buzzer0))
+const struct pwm_dt_spec buzzer = PWM_DT_SPEC_GET(DT_ALIAS(pwm_buzzer0));
+#endif /* DT_NODE_EXISTS(DT_ALIAS(pwm_buzzer0)) */
 
 /* Current firmware version; update in prj.conf or via build argument */
 static const char *_current_version = CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION;
@@ -253,6 +266,17 @@ int main(void)
 		/* Start Ostentus slideshow with 30 second delay between slides */
 		slideshow(30000);
 	));
+
+#ifdef CONFIG_PWM_BUZZER
+	pwm_buzzer_init(&buzzer);
+	// pwm_buzzer_beep(&buzzer);
+#endif /* CONFIG_PWM_BUZZER */
+
+#ifdef CONFIG_PWM_BUZZER_SONGS
+	// pwm_buzzer_play_funkytown(&buzzer);
+	pwm_buzzer_play_mario(&buzzer);
+	// pwm_buzzer_play_golioth(&buzzer);
+#endif /* CONFIG_PWM_BUZZER_SONGS */
 
 	while (true) {
 		app_sensors_read_and_stream();
