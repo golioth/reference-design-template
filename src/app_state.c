@@ -173,8 +173,11 @@ int app_state_observe(struct golioth_client *state_client)
 
 	client = state_client;
 
-	err = golioth_lightdb_observe_async(client, APP_STATE_DESIRED_ENDP,
-						app_state_desired_handler, NULL);
+	err = golioth_lightdb_observe_async(client,
+					    APP_STATE_DESIRED_ENDP,
+					    GOLIOTH_CONTENT_TYPE_JSON,
+					    app_state_desired_handler,
+					    NULL);
 	if (err) {
 		LOG_WRN("failed to observe lightdb path: %d", err);
 		return err;
