@@ -2,10 +2,17 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Changed
+
+- Upgrade `golioth/golioth-zephyr-boards` dependency to [`FIXME`](https://github.com/golioth/golioth-zephyr-boards/tree/FIXME)
 
 ## [template_v2.2.1] 2024-05-31
 
@@ -52,9 +59,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking Changes
 
 - Migrate to Golioth Firmware SDK at v0.10.0
-    - All header file and API call names have changed
-    - Many Golioth Kconfig symbols have changed
-    - OTA firmware update code is greatly simplified
+  - All header file and API call names have changed
+  - Many Golioth Kconfig symbols have changed
+  - OTA firmware update code is greatly simplified
 
 ### Added
 
@@ -64,18 +71,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Firmware version number is now passed as a symbol in the prj.conf file and not as a build argument
 - Use LTE Link handler from Golioth Common Library
-    - The majority of LTE Link handler callback is logging so this has been reused from the common
-      library
-    - An additional callback is registered in the application just to service on-connect events
+  - The majority of LTE Link handler callback is logging so this has been reused from the common
+    library
+  - An additional callback is registered in the application just to service on-connect events
 - Board definitions related to Ostentus face place moved to a common file that may be included when
   needed
 
 ## [template_v1.2.0] - 2023-11-08
 
 ### Added
+
 - GitHub workflow to create draft release and add compiled binaries to it.
 
 ### Changed
+
 - Update to most recent Golioth Zephyr SDK release v0.8.0 which uses:
   - nRF Connect SDK v2.5.0(NCS)
   - Zephyr v3.5.0
@@ -85,11 +94,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - renamed app_work.c/h to app_sensors.c/h
 
 ### Fixed
+
 - Fix build error when `CONFIG_LIB_OSTENTUS=n` on the `aludel_mini_v1_sparkfun9160` board.
 
 ## [template_v1.1.0] - 2023-08-18
 
 ### Breaking Changes
+
 - Golioth services (RPC, Settings, etc.) now use zcbor instead of qcbor
 - golioth-zephyr-boards repo now included as a module
   - Remove `golioth-boards` directory
@@ -101,6 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Remove `add_subdirectory(src/network_info)` from CMakeLists.txt
 
 ### Changed
+
 - update to most recent Golioth Zephyr SDK release v0.7.1 which uses:
   - nRF Connect SDK v2.4.1 (NCS)
   - Zephyr v3.3.99-ncs1-1
@@ -110,6 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   connection asynchronously
 
 ### Fixed
+
 - main.c: return int from main()
 - battery_monitor.c: use void as initialization param
 - main.c: use LOG_ERR() instead of printk() for button errors
@@ -117,6 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [template_v1.0.1] - 2023-07-14
 
 ### Fixed
+
 - Turn on Golioth LED when connected
 - Correctly reset `desired` endpoints when `example_int1` is changed by itself
 - Fix deadlock behavior when running `set_log_level` RPC multiple times
@@ -129,6 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [template_v1.0.0] - 2023-07-11
 
 ### Added
+
 - Initial release
 - Support for aludel_mini_v1_sparkfun9160 (custom Golioth board)
 - Support for nrf9160dk_nrf9160_ns (commercially available)
