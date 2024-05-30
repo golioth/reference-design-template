@@ -146,18 +146,38 @@ explanation of this template.
 Hardware Variations
 *******************
 
-Nordic nRF9160 DK
-=================
-
-This reference design may be built for the `Nordic nRF9160 DK`_.
+This reference design may be built for a variety of different boards.
 
 Prior to building, update ``CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION`` in the ``prj.conf`` file to
 reflect the firmware version number you want to assign to this build. Then run the following
 commands to build and program the firmware onto the device.
 
+Nordic nRF9160 DK
+=================
+
+This reference design may be built for the `Nordic nRF9160 DK`_.
+
 .. code-block:: text
 
    $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app
+   $ (.venv) west flash
+
+Golioth Aludel Elixir
+=====================
+
+This reference design may be built for the Golioth Aludel Elixir board. By default this will build
+for the latest hardware revision of this board.
+
+.. code-block:: text
+
+   $ (.venv) west build -p -b aludel_elixir_ns app
+   $ (.venv) west flash
+
+To build for a specific version (e.g. Rev A) add the revision suffix ``@<rev>``.
+
+.. code-block:: text
+
+   $ (.venv) west build -p -b aludel_elixir_ns@A app
    $ (.venv) west flash
 
 External Libraries
