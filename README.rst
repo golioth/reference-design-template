@@ -1,5 +1,5 @@
 ..
-   Copyright (c) 2022-2023 Golioth, Inc.
+   Copyright (c) 2024 Golioth, Inc.
    SPDX-License-Identifier: Apache-2.0
 
 Golioth Reference Design Template
@@ -16,8 +16,11 @@ implemented in basic form. Search the project for the word ``template`` and
 Local set up
 ************
 
-Do not clone this repo using git. Zephyr's ``west`` meta tool should be used to
-set up your local workspace.
+.. pull-quote::
+   [!IMPORTANT]
+
+   Do not clone this repo using git. Zephyr's ``west`` meta tool should be used to
+   set up your local workspace.
 
 Install the Python virtual environment (recommended)
 ====================================================
@@ -44,13 +47,13 @@ Use ``west`` to initialize and install
 Building the application
 ************************
 
-Build Zephyr sample application for Golioth Aludel-Mini
-(``aludel_mini_v1_sparkfun9160_ns``) from the top level of your project. After a
+Build the Zephyr sample application for the `Nordic nRF9160 DK`_
+(``nrf9160dk_nrf9160_ns``) from the top level of your project. After a
 successful build you will see a new ``build`` directory. Note that any changes
 (and git commits) to the project itself will be inside the ``app`` folder. The
 ``build`` and ``deps`` directories being one level higher prevents the repo from
 cataloging all of the changes to the dependencies and the build (so no
-``.gitignore`` is needed)
+``.gitignore`` is needed).
 
 Prior to building, update ``CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION`` in the ``prj.conf`` file to
 reflect the firmware version number you want to assign to this build. Then run the following
@@ -58,7 +61,7 @@ commands to build and program the firmware onto the device.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app
+   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app
    $ (.venv) west flash
 
 Configure PSK-ID and PSK using the device shell based on your Golioth
@@ -146,18 +149,38 @@ explanation of this template.
 Hardware Variations
 *******************
 
-Nordic nRF9160 DK
-=================
-
-This reference design may be built for the `Nordic nRF9160 DK`_.
+This reference design may be built for a variety of different boards.
 
 Prior to building, update ``CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION`` in the ``prj.conf`` file to
 reflect the firmware version number you want to assign to this build. Then run the following
 commands to build and program the firmware onto the device.
 
+Golioth Aludel Mini
+===================
+
+This reference design may be built for the Golioth Aludel Mini board.
+
 .. code-block:: text
 
-   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app
+   $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app
+   $ (.venv) west flash
+
+Golioth Aludel Elixir
+=====================
+
+This reference design may be built for the Golioth Aludel Elixir board. By default this will build
+for the latest hardware revision of this board.
+
+.. code-block:: text
+
+   $ (.venv) west build -p -b aludel_elixir_ns app
+   $ (.venv) west flash
+
+To build for a specific board revision (e.g. Rev A) add the revision suffix ``@<rev>``.
+
+.. code-block:: text
+
+   $ (.venv) west build -p -b aludel_elixir_ns@A app
    $ (.venv) west flash
 
 External Libraries
