@@ -11,6 +11,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include "app_settings.h"
 #include "app_state.h"
 #include "app_sensors.h"
+#include "network_location.h"
 #include <golioth/client.h>
 #include <golioth/fw_update.h>
 #include <samples/common/net_connect.h>
@@ -32,6 +33,8 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #ifdef CONFIG_MODEM_INFO
 #include <modem/modem_info.h>
 #endif
+
+#include <zephyr/data/json.h>
 
 /* Current firmware version; update in prj.conf or via build argument */
 static const char *_current_version = CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION;
@@ -96,6 +99,9 @@ static void start_golioth_client(void)
 
 	/* Register RPC service */
 	app_rpc_register(client);
+
+	/* Initialize network location */
+	network_location_init(client);
 }
 
 #ifdef CONFIG_SOC_NRF9160
@@ -255,7 +261,10 @@ int main(void)
 	));
 
 	while (true) {
-		app_sensors_read_and_stream();
+		// app_sensors_read_and_stream();
+		if (golioth_client_is_connected(client)) {
+			network_location_execute();
+		}
 
 		k_sleep(K_SECONDS(get_loop_delay_s()));
 	}
