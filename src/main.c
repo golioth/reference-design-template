@@ -97,6 +97,8 @@ static void start_golioth_client(void)
 
 	/* Register RPC service */
 	app_rpc_register(client);
+
+	wifi_positioning_init(client);
 }
 
 #ifdef CONFIG_SOC_NRF9160
@@ -163,8 +165,6 @@ void golioth_connection_led_set(uint8_t state)
 int main(void)
 {
 	int err;
-
-	wifi_positioning_init();
 
 	LOG_DBG("Start Reference Design Template sample");
 
@@ -259,7 +259,9 @@ int main(void)
 
 	while (true) {
 		// app_sensors_read_and_stream();
-		wifi_positioning_request_scan();
+		if (golioth_client_is_connected(client)) {
+			wifi_positioning_request_scan();
+		}
 
 		k_sleep(K_SECONDS(get_loop_delay_s()));
 	}
