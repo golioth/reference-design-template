@@ -11,6 +11,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include "app_settings.h"
 #include "app_state.h"
 #include "app_sensors.h"
+#include "wifi_positioning.h"
 #include <golioth/client.h>
 #include <golioth/fw_update.h>
 #include <samples/common/net_connect.h>
@@ -163,6 +164,8 @@ int main(void)
 {
 	int err;
 
+	wifi_positioning_init();
+
 	LOG_DBG("Start Reference Design Template sample");
 
 	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION);
@@ -255,7 +258,8 @@ int main(void)
 	));
 
 	while (true) {
-		app_sensors_read_and_stream();
+		// app_sensors_read_and_stream();
+		wifi_positioning_request_scan();
 
 		k_sleep(K_SECONDS(get_loop_delay_s()));
 	}
