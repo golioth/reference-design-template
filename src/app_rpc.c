@@ -5,7 +5,6 @@
  */
 
 #include <zephyr/logging/log.h>
-#include <zephyr/logging/log_ctrl.h>
 LOG_MODULE_REGISTER(app_rpc, LOG_LEVEL_DBG);
 
 #include <golioth/client.h>
