@@ -9,6 +9,7 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 
 #include <golioth/client.h>
 #include <golioth/stream.h>
+#include <zcbor_encode.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 
@@ -24,11 +25,7 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 static struct golioth_client *client;
 /* Add Sensor structs here */
 
-/* Formatting string for sending sensor JSON to Golioth */
-#define JSON_FMT "{\"counter\":%d}"
-
 /* Callback for LightDB Stream */
-
 static void async_error_handler(struct golioth_client *client,
 				const struct golioth_response *response,
 				const char *path,
@@ -45,8 +42,8 @@ static void async_error_handler(struct golioth_client *client,
 void app_sensors_read_and_stream(void)
 {
 	int err;
-	char json_buf[256];
 
+	/* Golioth custom hardware for demos */
 	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
 		read_and_report_battery(client);
 		IF_ENABLED(CONFIG_LIB_OSTENTUS, (
@@ -55,35 +52,56 @@ void app_sensors_read_and_stream(void)
 		));
 	));
 
-	/* For this demo, we just send counter data to Golioth */
-	static uint8_t counter;
-
 	/* Send sensor data to Golioth */
-	/* For this demo we just fake it */
-	snprintk(json_buf, sizeof(json_buf), JSON_FMT, counter);
-	LOG_DBG("%s", json_buf);
+	/* For this demo, we just send counter data to Golioth */
+	static uint16_t counter;
 
+	/* Encode sensor data using CBOR serialization */
+	uint8_t cbor_buf[13];
+
+	ZCBOR_STATE_E(zse, 1, cbor_buf, sizeof(cbor_buf), 1);
+
+	bool ok = zcbor_map_start_encode(zse, 1) &&
+		  zcbor_tstr_put_lit(zse, "counter") &&
+		  zcbor_uint32_put(zse, counter) &&
+		  zcbor_map_end_encode(zse, 1);
+
+	if (!ok) {
+		LOG_ERR("Failed to encode CBOR.");
+		return;
+	}
+
+	size_t cbor_size = zse->payload - cbor_buf;
+
+	LOG_DBG("Streaming counter: %d", counter);
+
+	/* Stream data to Golioth */
 	err = golioth_stream_set_async(client,
 				       "sensor",
-				       GOLIOTH_CONTENT_TYPE_JSON,
-				       json_buf,
-				       strlen(json_buf),
+				       GOLIOTH_CONTENT_TYPE_CBOR,
+				       cbor_buf,
+				       cbor_size,
 				       async_error_handler,
 				       NULL);
 	if (err) {
 		LOG_ERR("Failed to send sensor data to Golioth: %d", err);
 	}
 
+	/* Golioth custom hardware for demos */
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
 		/* Update slide values on Ostentus
 		 *  -values should be sent as strings
 		 *  -use the enum from app_sensors.h for slide key values
 		 */
-		snprintk(json_buf, sizeof(json_buf), "%d", counter);
-		slide_set(UP_COUNTER, json_buf, strlen(json_buf));
-		snprintk(json_buf, sizeof(json_buf), "%d", 255 - counter);
-		slide_set(DN_COUNTER, json_buf, strlen(json_buf));
+		char sbuf[32];
+
+		snprintk(sbuf, sizeof(sbuf), "%d", counter);
+		slide_set(UP_COUNTER, sbuf, strlen(sbuf));
+		snprintk(sbuf, sizeof(sbuf), "%d", 65535 - counter);
+		slide_set(DN_COUNTER, sbuf, strlen(sbuf));
 	));
+
+	/* Increment for the next run */
 	++counter;
 }
 
