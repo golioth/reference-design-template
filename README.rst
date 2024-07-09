@@ -55,9 +55,8 @@ successful build you will see a new ``build`` directory. Note that any changes
 cataloging all of the changes to the dependencies and the build (so no
 ``.gitignore`` is needed).
 
-Prior to building, update ``CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION`` in the ``prj.conf`` file to
-reflect the firmware version number you want to assign to this build. Then run the following
-commands to build and program the firmware onto the device.
+Prior to building, update ``VERSION`` file to reflect the firmware version number you want to assign
+to this build. Then run the following commands to build and program the firmware onto the device.
 
 .. code-block:: text
 
@@ -151,9 +150,8 @@ Hardware Variations
 
 This reference design may be built for a variety of different boards.
 
-Prior to building, update ``CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION`` in the ``prj.conf`` file to
-reflect the firmware version number you want to assign to this build. Then run the following
-commands to build and program the firmware onto the device.
+Prior to building, update ``VERSION`` file to reflect the firmware version number you want to assign
+to this build. Then run the following commands to build and program the firmware onto the device.
 
 Golioth Aludel Mini
 ===================
