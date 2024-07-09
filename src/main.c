@@ -7,6 +7,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 
+#include <app_version.h>
 #include "app_rpc.h"
 #include "app_settings.h"
 #include "app_state.h"
@@ -33,8 +34,9 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include <modem/modem_info.h>
 #endif
 
-/* Current firmware version; update in prj.conf or via build argument */
-static const char *_current_version = CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION;
+// Current firmware version; update in VERSION
+static const char *_current_version =
+    STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
 
 static struct golioth_client *client;
 K_SEM_DEFINE(connected, 0, 1);
@@ -165,7 +167,7 @@ int main(void)
 
 	LOG_DBG("Start Reference Design Template sample");
 
-	LOG_INF("Firmware version: %s", CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION);
+	LOG_INF("Firmware version: %s", _current_version);
 	IF_ENABLED(CONFIG_MODEM_INFO, (log_modem_firmware_version();));
 
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
@@ -247,8 +249,8 @@ int main(void)
 		summary_title(SUMMARY_TITLE, strlen(SUMMARY_TITLE));
 
 		/* Update the Firmware slide with the firmware version */
-		slide_set(FIRMWARE, CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION,
-			  strlen(CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION));
+		slide_set(FIRMWARE, _current_version,
+			  strlen(_current_version));
 
 		/* Start Ostentus slideshow with 30 second delay between slides */
 		slideshow(30000);
