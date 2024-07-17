@@ -30,6 +30,7 @@
 
 #define APP_STATE_DESIRED_ENDP "desired"
 #define APP_STATE_ACTUAL_ENDP  "state"
+#define APP_STATE_WIFI_LTE_LOC_ENDP "wifi_lte_loc_resp"
 
 int app_state_observe(struct golioth_client *state_client);
 int app_state_update_actual(void);

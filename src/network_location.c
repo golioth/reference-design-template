@@ -145,7 +145,7 @@ static void stream_network_location_info(void)
 {
 	int err;
 
-	err = golioth_stream_set_async(_client, "", GOLIOTH_CONTENT_TYPE_JSON, json_buf,
+	err = golioth_stream_set_async(_client, "wifi_lte_loc_req", GOLIOTH_CONTENT_TYPE_JSON, json_buf,
 				       strlen(json_buf), stream_network_location_info_cb, NULL);
 	if (err) {
 		LOG_ERR("Failed to enqueue network location info stream request: %d", err);
