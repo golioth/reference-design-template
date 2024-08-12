@@ -17,6 +17,7 @@ LOG_MODULE_REGISTER(app_sensors, LOG_LEVEL_DBG);
 
 #ifdef CONFIG_LIB_OSTENTUS
 #include <libostentus.h>
+static const struct device *o_dev = DEVICE_DT_GET_ANY(golioth_ostentus);
 #endif
 #ifdef CONFIG_ALUDEL_BATTERY_MONITOR
 #include "battery_monitor/battery.h"
@@ -47,8 +48,14 @@ void app_sensors_read_and_stream(void)
 	IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
 		read_and_report_battery(client);
 		IF_ENABLED(CONFIG_LIB_OSTENTUS, (
-			slide_set(BATTERY_V, get_batt_v_str(), strlen(get_batt_v_str()));
-			slide_set(BATTERY_LVL, get_batt_lvl_str(), strlen(get_batt_lvl_str()));
+			ostentus_slide_set(o_dev,
+					   BATTERY_V,
+					   get_batt_v_str(),
+					   strlen(get_batt_v_str()));
+			ostentus_slide_set(o_dev,
+					   BATTERY_LVL,
+					   get_batt_lvl_str(),
+					   strlen(get_batt_lvl_str()));
 		));
 	));
 
@@ -96,9 +103,9 @@ void app_sensors_read_and_stream(void)
 		char sbuf[32];
 
 		snprintk(sbuf, sizeof(sbuf), "%d", counter);
-		slide_set(UP_COUNTER, sbuf, strlen(sbuf));
+		ostentus_slide_set(o_dev, UP_COUNTER, sbuf, strlen(sbuf));
 		snprintk(sbuf, sizeof(sbuf), "%d", 65535 - counter);
-		slide_set(DN_COUNTER, sbuf, strlen(sbuf));
+		ostentus_slide_set(o_dev, DN_COUNTER, sbuf, strlen(sbuf));
 	));
 
 	/* Increment for the next run */
