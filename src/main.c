@@ -23,6 +23,8 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #endif
 #ifdef CONFIG_LIB_OSTENTUS
 #include <libostentus.h>
+#include <libostentus_regmap.h>
+static const struct device *o_dev = DEVICE_DT_GET_ANY(golioth_ostentus);
 #endif
 #ifdef CONFIG_ALUDEL_BATTERY_MONITOR
 #include "battery_monitor/battery.h"
@@ -110,7 +112,7 @@ static void lte_handler(const struct lte_lc_evt *const evt)
 		    (evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_ROAMING)) {
 
 			/* Change the state of the Internet LED on Ostentus */
-			IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_internet_set(1);));
+			IF_ENABLED(CONFIG_LIB_OSTENTUS, (ostentus_led_internet_set(o_dev, 1);));
 
 			if (!client) {
 				/* Create and start a Golioth Client */
@@ -158,7 +160,7 @@ void golioth_connection_led_set(uint8_t state)
 	gpio_pin_set_dt(&golioth_led, pin_state);
 #endif /* #if DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 	/* Change the state of the Golioth LED on Ostentus */
-	IF_ENABLED(CONFIG_LIB_OSTENTUS, (led_golioth_set(pin_state);));
+	IF_ENABLED(CONFIG_LIB_OSTENTUS, (ostentus_led_golioth_set(o_dev, pin_state);));
 }
 
 int main(void)
@@ -171,12 +173,22 @@ int main(void)
 	IF_ENABLED(CONFIG_MODEM_INFO, (log_modem_firmware_version();));
 
 	IF_ENABLED(CONFIG_LIB_OSTENTUS, (
-		/* Clear Ostentus memory */
-		clear_memory();
+		/* Reset Ostentus and pause for reboot */
+		ostentus_reset(o_dev);
+		k_msleep(300);
+
+		/* Read firmware version from faceplate */
+		char *o_version = (char *)calloc(32, sizeof(char));
+
+		ostentus_version_get(o_dev, o_version, 32);
+		LOG_INF("Ostentus reports firmware version: %s", o_version);
+		free(o_version);
+
 		/* Update Ostentus LEDS using bitmask (Power On and Battery) */
-		led_bitmask(LED_POW | LED_BAT);
+		ostentus_led_bitmask(o_dev, LED_POW | LED_BAT);
+
 		/* Show Golioth Logo on Ostentus ePaper screen */
-		show_splash();
+		ostentus_show_splash(o_dev);
 	));
 
 	/* Get system thread id so loop delay change event can wake main */
@@ -237,23 +249,29 @@ int main(void)
 		 *  - use the enum in app_sensors.h to add new keys
 		 *  - values are updated using these keys (see app_sensors.c)
 		 */
-		slide_add(UP_COUNTER, LABEL_UP_COUNTER, strlen(LABEL_UP_COUNTER));
-		slide_add(DN_COUNTER, LABEL_DN_COUNTER, strlen(LABEL_DN_COUNTER));
+		ostentus_slide_add(o_dev, UP_COUNTER, LABEL_UP_COUNTER, strlen(LABEL_UP_COUNTER));
+		ostentus_slide_add(o_dev, DN_COUNTER, LABEL_DN_COUNTER, strlen(LABEL_DN_COUNTER));
 		IF_ENABLED(CONFIG_ALUDEL_BATTERY_MONITOR, (
-			slide_add(BATTERY_V, LABEL_BATTERY, strlen(LABEL_BATTERY));
-			slide_add(BATTERY_LVL, LABEL_BATTERY, strlen(LABEL_BATTERY));
+			ostentus_slide_add(o_dev,
+					   BATTERY_V,
+					   LABEL_BATTERY,
+					   strlen(LABEL_BATTERY));
+			ostentus_slide_add(o_dev,
+					   BATTERY_LVL,
+					   LABEL_BATTERY,
+					   strlen(LABEL_BATTERY));
 		));
-		slide_add(FIRMWARE, LABEL_FIRMWARE, strlen(LABEL_FIRMWARE));
+		ostentus_slide_add(o_dev, FIRMWARE, LABEL_FIRMWARE, strlen(LABEL_FIRMWARE));
 
-		/* Set the title ofthe Ostentus summary slide (optional) */
-		summary_title(SUMMARY_TITLE, strlen(SUMMARY_TITLE));
+		/* Set the title of the Ostentus summary slide (optional) */
+		ostentus_summary_title(o_dev, SUMMARY_TITLE, strlen(SUMMARY_TITLE));
 
 		/* Update the Firmware slide with the firmware version */
-		slide_set(FIRMWARE, _current_version,
+		ostentus_slide_set(o_dev, FIRMWARE, (char *)_current_version,
 			  strlen(_current_version));
 
 		/* Start Ostentus slideshow with 30 second delay between slides */
-		slideshow(30000);
+		ostentus_slideshow(o_dev, 30000);
 	));
 
 	while (true) {
