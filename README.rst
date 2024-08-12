@@ -72,6 +72,25 @@ credentials and reboot:
    uart:~$ settings set golioth/psk <my-psk>
    uart:~$ kernel reboot cold
 
+Add Pipeline to Golioth
+***********************
+
+Golioth uses `Pipelines`_ to route stream data. This gives you flexibility to change your data
+routing without requiring updated device firmware.
+
+Whenever sending stream data, you must enable a pipeline in your Golioth project to configure how
+that data is handled. Add the contents of ``pipelines/cbor-to-lightdb.yml`` as a new pipeline as
+follows (note that this is the default pipeline for new projects and may already be present):
+
+   1. Navigate to your project on the Golioth web console.
+   2. Select ``Pipelines`` from the left sidebar and click the ``Create`` button.
+   3. Give your new pipeline a name and paste the pipeline configuration into the editor.
+   4. Click the toggle in the bottom right to enable the pipeline and then click ``Create``.
+
+All data streamed to Golioth in CBOR format will now be routed to LightDB Stream and may be viewed
+using the web console. You may change this behavior at any time without updating firmware simply by
+editing this pipeline entry.
+
 Golioth Features
 ****************
 
@@ -228,6 +247,7 @@ the following workflow to pull in future changes:
 
 .. _Golioth Console: https://console.golioth.io
 .. _Nordic nRF9160 DK: https://www.nordicsemi.com/Products/Development-hardware/nrf9160-dk
+.. _Pipelines: https://docs.golioth.io/data-routing
 .. _golioth-zephyr-boards: https://github.com/golioth/golioth-zephyr-boards
 .. _libostentus: https://github.com/golioth/libostentus
 .. _zephyr-network-info: https://github.com/golioth/zephyr-network-info
