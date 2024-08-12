@@ -1,0 +1,11 @@
+filter:
+  path: "*"
+  content_type: application/cbor
+steps:
+  - name: step-0
+    transformer:
+      type: cbor-to-json
+      version: v1
+    destination:
+      type: lightdb-stream
+      version: v1
