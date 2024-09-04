@@ -58,6 +58,13 @@ cataloging all of the changes to the dependencies and the build (so no
 Prior to building, update ``VERSION`` file to reflect the firmware version number you want to assign
 to this build. Then run the following commands to build and program the firmware onto the device.
 
+
+.. pull-quote::
+   [!IMPORTANT]
+
+   You must perform a pristine build (use ``-p`` or remove the ``build`` directory)
+   after changing the firmware version number in the ``VERSION`` file for the change to take effect.
+
 .. code-block:: text
 
    $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app

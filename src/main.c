@@ -208,7 +208,7 @@ int main(void)
 	 */
 
 	LOG_INF("Connecting to LTE, this may take some time...");
-	lte_lc_init_and_connect_async(lte_handler);
+	lte_lc_connect_async(lte_handler);
 
 #else
 	/* If nRF9160 is not used, start the Golioth Client and block until connected */
