@@ -67,7 +67,7 @@ to this build. Then run the following commands to build and program the firmware
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b nrf9160dk_nrf9160_ns app
+   $ (.venv) west build -p -b nrf9160dk/nrf9160/ns app
    $ (.venv) west flash
 
 Configure PSK-ID and PSK using the device shell based on your Golioth
@@ -186,7 +186,7 @@ This reference design may be built for the Golioth Aludel Mini board.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b aludel_mini_v1_sparkfun9160_ns app
+   $ (.venv) west build -p -b aludel_mini/nrf9160/ns app
    $ (.venv) west flash
 
 Golioth Aludel Elixir
@@ -197,14 +197,14 @@ for the latest hardware revision of this board.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b aludel_elixir_ns app
+   $ (.venv) west build -p -b aludel_elixir/nrf9160/ns app
    $ (.venv) west flash
 
 To build for a specific board revision (e.g. Rev A) add the revision suffix ``@<rev>``.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b aludel_elixir_ns@A app
+   $ (.venv) west build -p -b aludel_elixir@A/nrf9160/ns app
    $ (.venv) west flash
 
 External Libraries
