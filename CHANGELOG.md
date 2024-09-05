@@ -8,6 +8,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [template_v2.4.0] - 2024-09-05
+
+### Changed
+
+- Upgrade to Golioth Firmware SDK at
+  [`v0.15.0`](https://github.com/golioth/golioth-firmware-sdk/releases/tag/v0.15.0)
+- Add sample `pipeline` to configure routing stream data (See [Data
+  Routing](https://docs.golioth.io/data-routing) documentation)
+- Upgrade `golioth/golioth-zephyr-boards` dependency to
+  [`v2.0.0`](https://github.com/golioth/golioth-zephyr-boards/releases/tag/v2.0.0).
+    - Update board names to match this change
+- Upgrade `golioth/zephyr-network-info` dependency to
+  [`v1.2.0`](https://github.com/golioth/zephyr-network-info/releases/tag/v1.2.0)
+- Upgrade `golioth/libostentus` dependency to
+  [`v2.0.0`](https://github.com/golioth/libostentus/releases/tag/v2.0.0)
+- Use VERSION file to indicate version number of firmware being built. This number is used by
+  MCUboot to verify the correct version is running after an OTA firmware update.
+
 ## [template_v2.3.0] - 2024-06-24
 
 ### Changed
