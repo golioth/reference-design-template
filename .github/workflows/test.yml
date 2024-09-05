@@ -1,7 +1,7 @@
 # Copyright (c) 2023 Golioth, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-name: Test firmware    
+name: Test firmware
 
 on:
   pull_request:
@@ -13,5 +13,5 @@ jobs:
     uses: ./.github/workflows/build_zephyr.yml
     with:
       ZEPHYR_SDK: 0.16.3
-      BOARD: aludel_mini_v1_sparkfun9160_ns
+      BOARD: aludel_mini/nrf9160/ns
       ARTIFACT: false
