@@ -67,7 +67,7 @@ to this build. Then run the following commands to build and program the firmware
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b nrf9160dk/nrf9160/ns app
+   $ (.venv) west build -p -b nrf9160dk/nrf9160/ns --sysbuild app
    $ (.venv) west flash
 
 Configure PSK-ID and PSK using the device shell based on your Golioth
@@ -186,7 +186,7 @@ This reference design may be built for the Golioth Aludel Mini board.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b aludel_mini/nrf9160/ns app
+   $ (.venv) west build -p -b aludel_mini/nrf9160/ns --sysbuild app
    $ (.venv) west flash
 
 Golioth Aludel Elixir
@@ -197,15 +197,28 @@ for the latest hardware revision of this board.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b aludel_elixir/nrf9160/ns app
+   $ (.venv) west build -p -b aludel_elixir/nrf9160/ns --sysbuild app
    $ (.venv) west flash
 
 To build for a specific board revision (e.g. Rev A) add the revision suffix ``@<rev>``.
 
 .. code-block:: text
 
-   $ (.venv) west build -p -b aludel_elixir@A/nrf9160/ns app
+   $ (.venv) west build -p -b aludel_elixir@A/nrf9160/ns --sysbuild app
    $ (.venv) west flash
+
+OTA Firmware Update
+*******************
+
+This application includes the ability to perform Over-the-Air (OTA) firmware updates:
+
+1. Update the version number in the `VERSION` file and perform a pristine (important) build to
+   incorporate the version change.
+2. Upload the `build/app/zephyr/zephyr.signed.bin` file as an artifact for your Golioth project
+   using `main` as the package name.
+3. Create and roll out a release based on this artifact.
+
+Visit `the Golioth Docs OTA Firmware Upgrade page`_ for more info.
 
 External Libraries
 ******************
@@ -255,6 +268,7 @@ the following workflow to pull in future changes:
 .. _Golioth Console: https://console.golioth.io
 .. _Nordic nRF9160 DK: https://www.nordicsemi.com/Products/Development-hardware/nrf9160-dk
 .. _Pipelines: https://docs.golioth.io/data-routing
+.. _the Golioth Docs OTA Firmware Upgrade page: https://docs.golioth.io/firmware/golioth-firmware-sdk/firmware-upgrade/firmware-upgrade
 .. _golioth-zephyr-boards: https://github.com/golioth/golioth-zephyr-boards
 .. _libostentus: https://github.com/golioth/libostentus
 .. _zephyr-network-info: https://github.com/golioth/zephyr-network-info
