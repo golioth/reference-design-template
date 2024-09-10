@@ -60,20 +60,20 @@ jobs:
 
       - name: Build with West
         run: |
-          west build -p -b ${{ inputs.BOARD }} app
+          west build -p -b ${{ inputs.BOARD }} --sysbuild app
 
       - name: Prepare artifacts
         shell: bash
         if: inputs.ARTIFACT == true && inputs.TAG != ''
 
         run: |
-          cd build/zephyr
+          cd build
           mkdir -p artifacts
           BOARD_NICENAME=${{ inputs.BOARD }}
           BOARD_NICENAME=${BOARD_NICENAME//\//_}
-          mv merged.hex     ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${BOARD_NICENAME}_full.hex
-          mv app_update.bin ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${BOARD_NICENAME}_update.bin
-          mv zephyr.elf     ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${BOARD_NICENAME}.elf
+          mv merged.hex                   ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${BOARD_NICENAME}_full.hex
+          mv app/zephyr/zephyr.signed.bin ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${BOARD_NICENAME}_update.bin
+          mv app/zephyr/zephyr.elf        ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${BOARD_NICENAME}.elf
 
       # Run IDs are unique per repo but are reused on re-runs
       - name: Save artifact
@@ -82,4 +82,4 @@ jobs:
         with:
           name: build_artifacts_${{ github.run_id }}
           path: |
-            build/zephyr/artifacts/*
+            build/artifacts/*
