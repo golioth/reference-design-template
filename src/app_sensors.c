@@ -28,8 +28,7 @@ static struct golioth_client *client;
 
 /* Callback for LightDB Stream */
 static void async_error_handler(struct golioth_client *client,
-				const struct golioth_response *response,
-				const char *path,
+				const struct golioth_response *response, const char *path,
 				void *arg)
 {
 	if (response->status != GOLIOTH_OK) {
@@ -68,10 +67,8 @@ void app_sensors_read_and_stream(void)
 
 	ZCBOR_STATE_E(zse, 1, cbor_buf, sizeof(cbor_buf), 1);
 
-	bool ok = zcbor_map_start_encode(zse, 1) &&
-		  zcbor_tstr_put_lit(zse, "counter") &&
-		  zcbor_uint32_put(zse, counter) &&
-		  zcbor_map_end_encode(zse, 1);
+	bool ok = zcbor_map_start_encode(zse, 1) && zcbor_tstr_put_lit(zse, "counter") &&
+		  zcbor_uint32_put(zse, counter) && zcbor_map_end_encode(zse, 1);
 
 	if (!ok) {
 		LOG_ERR("Failed to encode CBOR.");
@@ -83,13 +80,8 @@ void app_sensors_read_and_stream(void)
 	LOG_DBG("Streaming counter: %d", counter);
 
 	/* Stream data to Golioth */
-	err = golioth_stream_set_async(client,
-				       "sensor",
-				       GOLIOTH_CONTENT_TYPE_CBOR,
-				       cbor_buf,
-				       cbor_size,
-				       async_error_handler,
-				       NULL);
+	err = golioth_stream_set_async(client, "sensor", GOLIOTH_CONTENT_TYPE_CBOR, cbor_buf,
+				       cbor_size, async_error_handler, NULL);
 	if (err) {
 		LOG_ERR("Failed to send sensor data to Golioth: %d", err);
 	}
