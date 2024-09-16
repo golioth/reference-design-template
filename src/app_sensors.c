@@ -62,28 +62,33 @@ void app_sensors_read_and_stream(void)
 	/* For this demo, we just send counter data to Golioth */
 	static uint16_t counter;
 
-	/* Encode sensor data using CBOR serialization */
-	uint8_t cbor_buf[13];
+	/* Only stream sensor data if connected */
+	if (golioth_client_is_connected(client)) {
+		/* Encode sensor data using CBOR serialization */
+		uint8_t cbor_buf[13];
 
-	ZCBOR_STATE_E(zse, 1, cbor_buf, sizeof(cbor_buf), 1);
+		ZCBOR_STATE_E(zse, 1, cbor_buf, sizeof(cbor_buf), 1);
 
-	bool ok = zcbor_map_start_encode(zse, 1) && zcbor_tstr_put_lit(zse, "counter") &&
-		  zcbor_uint32_put(zse, counter) && zcbor_map_end_encode(zse, 1);
+		bool ok = zcbor_map_start_encode(zse, 1) && zcbor_tstr_put_lit(zse, "counter") &&
+			  zcbor_uint32_put(zse, counter) && zcbor_map_end_encode(zse, 1);
 
-	if (!ok) {
-		LOG_ERR("Failed to encode CBOR.");
-		return;
-	}
+		if (!ok) {
+			LOG_ERR("Failed to encode CBOR.");
+			return;
+		}
 
-	size_t cbor_size = zse->payload - cbor_buf;
+		size_t cbor_size = zse->payload - cbor_buf;
 
-	LOG_DBG("Streaming counter: %d", counter);
+		LOG_DBG("Streaming counter: %d", counter);
 
-	/* Stream data to Golioth */
-	err = golioth_stream_set_async(client, "sensor", GOLIOTH_CONTENT_TYPE_CBOR, cbor_buf,
-				       cbor_size, async_error_handler, NULL);
-	if (err) {
-		LOG_ERR("Failed to send sensor data to Golioth: %d", err);
+		/* Stream data to Golioth */
+		err = golioth_stream_set_async(client, "sensor", GOLIOTH_CONTENT_TYPE_CBOR,
+					       cbor_buf, cbor_size, async_error_handler, NULL);
+		if (err) {
+			LOG_ERR("Failed to send sensor data to Golioth: %d", err);
+		}
+	} else {
+		LOG_DBG("No connection available, skipping streaming counter: %d", counter);
 	}
 
 	/* Golioth custom hardware for demos */
