@@ -365,6 +365,8 @@ int read_and_report_battery(struct golioth_client *client)
 			LOG_ERR("Error streaming battery info");
 			return err;
 		}
+	} else {
+		LOG_DBG("No connection available, skipping streaming battery info");
 	}
 
 	return 0;
