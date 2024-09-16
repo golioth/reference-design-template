@@ -311,8 +311,7 @@ void log_battery_data(void)
 }
 
 static void async_error_handler(struct golioth_client *client,
-				const struct golioth_response *response,
-				const char *path,
+				const struct golioth_response *response, const char *path,
 				void *arg)
 {
 	if (response->status != GOLIOTH_OK) {
@@ -333,13 +332,8 @@ int stream_battery_data(struct golioth_client *client, struct battery_data *batt
 		 batt_data->battery_level_pptt % 100);
 	LOG_DBG("%s", json_buf);
 
-	err = golioth_stream_set_async(client,
-				       stream_endpoint,
-				       GOLIOTH_CONTENT_TYPE_JSON,
-				       json_buf,
-				       strlen(json_buf),
-				       async_error_handler,
-				       NULL);
+	err = golioth_stream_set_async(client, stream_endpoint, GOLIOTH_CONTENT_TYPE_JSON, json_buf,
+				       strlen(json_buf), async_error_handler, NULL);
 	if (err) {
 		LOG_ERR("Failed to send battery data to Golioth: %d", err);
 	}
