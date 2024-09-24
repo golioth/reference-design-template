@@ -36,7 +36,7 @@ static const struct device *o_dev = DEVICE_DT_GET_ANY(golioth_ostentus);
 #include <modem/modem_info.h>
 #endif
 
-// Current firmware version; update in VERSION
+/* Current firmware version; update in VERSION */
 static const char *_current_version =
     STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
 
