@@ -38,8 +38,9 @@ jobs:
             - name: Download artifact
               uses: actions/download-artifact@v4
               with:
-                name: build_artifacts_${{ github.run_id }}
+                pattern: build_artifacts_*
                 path: ~/artifacts
+                merge-multiple: true
 
             - name: Create Release manually with GH CLI
               run: gh release create --title ${{ inputs.version }} --draft ${{ inputs.version }}
