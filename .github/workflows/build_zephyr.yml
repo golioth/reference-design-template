@@ -49,6 +49,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: app
+
+      - name: Process Board name
+        id: nicename
+        shell: bash
+        run: |
+          BOARD_NICENAME=${{ inputs.BOARD }}
+          BOARD_NICENAME=${BOARD_NICENAME//\//_}
+          echo "BOARD_NICENAME=${BOARD_NICENAME}" >> $GITHUB_OUTPUT
+
       - name: Setup West workspace
         run: |
           west init -l app
@@ -69,17 +78,15 @@ jobs:
         run: |
           cd build
           mkdir -p artifacts
-          BOARD_NICENAME=${{ inputs.BOARD }}
-          BOARD_NICENAME=${BOARD_NICENAME//\//_}
-          mv merged.hex                   ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${BOARD_NICENAME}_full.hex
-          mv app/zephyr/zephyr.signed.bin ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${BOARD_NICENAME}_update.bin
-          mv app/zephyr/zephyr.elf        ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${BOARD_NICENAME}.elf
+          mv merged.hex                   ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ steps.nicename.outputs.BOARD_NICENAME }}_full.hex
+          mv app/zephyr/zephyr.signed.bin ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ steps.nicename.outputs.BOARD_NICENAME }}_update.bin
+          mv app/zephyr/zephyr.elf        ./artifacts/golioth-${{ github.event.repository.name }}_${{ inputs.TAG }}_${{ steps.nicename.outputs.BOARD_NICENAME }}.elf
 
       # Run IDs are unique per repo but are reused on re-runs
       - name: Save artifact
         if: inputs.ARTIFACT == true
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: build_artifacts_${{ github.run_id }}
+          name: build_artifacts_${{ github.run_id }}_${{ steps.nicename.outputs.BOARD_NICENAME }}
           path: |
             build/artifacts/*
