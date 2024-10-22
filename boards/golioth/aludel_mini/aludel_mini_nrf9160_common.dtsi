@@ -1,0 +1,278 @@
+/*
+ * Copyright (c) 2018-2020 Nordic Semiconductor ASA
+ * Copyright (c) 2020 Circuit Dojo LLC
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+#include "aludel_mini_nrf9160_common-pinctrl.dtsi"
+
+/ {
+	model = "Aludel Mini v1 Sparkfun9160";
+	compatible = "aludel,mini-v1-sparkfun9160";
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,uart-mcumgr = &uart0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		blue_led: led_0 {
+			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+		};
+		golioth_led: golioth_led {
+			gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	pwmleds {
+		compatible = "pwm-leds";
+		pwm_led0: pwm_led_0 {
+			pwms = <&pwm0 0 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
+		};
+	};
+
+	buttons {
+		compatible = "gpio-keys";
+		mode_button: mode-button {
+			gpios = <&gpio0 12 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+		user_button: user-button {
+			gpios = <&gpio0 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+	};
+
+	/* These aliases are provided for compatibility with samples */
+	aliases {
+		led0 = &blue_led;
+		bootloader-led0 = &blue_led;
+		golioth-led = &golioth_led;
+		pwm-led0 = &pwm_led0;
+		sw0 = &mode_button;
+		sw1 = &user_button;
+		mcuboot-button0 = &mode_button;
+		mcuboot-led0 = &blue_led;
+		watchdog0 = &wdt0;
+		accel0 = &lis2dh;
+		mikrobus-serial = &mikrobus_serial;
+		mikrobus-i2c = &mikrobus_i2c;
+		mikrobus-spi = &mikrobus_spi;
+		/* Deprecated click-* aliases (use mikrobus-* aliases instead) */
+		click-uart = &mikrobus_serial;
+		click-i2c = &mikrobus_i2c;
+	};
+
+	/* Used for accessing other pins */
+	feather_header: feather_connector {
+		compatible = "adafruit-feather-header";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map =	<0 0 &gpio0 13 0>,	/* A0 (ADC0 = AIN1) */
+				<1 0 &gpio0 14 0>,	/* A1 (ADC1 = AIN2) */
+				<2 0 &gpio0 15 0>,	/* A2 (ADC2 = AIN4) */
+				<3 0 &gpio0 16 0>,	/* A3 (ADC3 = AIN5) */
+				<4 0 &gpio0 17 0>,	/* A4 (ADC4 = AIN6) */
+				<5 0 &gpio0 18 0>,	/* A5 (CS) */
+				<6 0 &gpio0 19 0>,	/* SCK */
+				<7 0 &gpio0 21 0>,	/* MOSI */
+				<8 0 &gpio0 22 0>,	/* MISO */
+				<9 0 &gpio0 23 0>,	/* RX */
+				<10 0 &gpio0 24 0>,	/* TX */
+				<11 0 &gpio0 31 0>,	/* D4 (NRF_PS_EN) */
+				<12 0 &gpio0 26 0>,	/* SDA */
+				<13 0 &gpio0 27 0>,	/* SCL */
+				<14 0 &gpio0 29 0>,	/* D5 (PWM3) */
+				<15 0 &gpio0 30 0>,	/* D6 (PWM3) */
+				<16 0 &gpio0 0 0>,	/* D9 (PWM1) */
+				<17 0 &gpio0 1 0>,	/* D10 (PWM1) */
+				<18 0 &gpio0 2 0>,	/* D11 (PWM1) */
+				<19 0 &gpio0 3 0>,	/* D12 (PWM0) */
+				<20 0 &gpio0 4 0>;	/* D13 (PWM1) */
+	};
+
+	mikrobus_header_1: mikrobus-connector-1 {
+		compatible = "mikro-bus";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map =	<0 0 &feather_header 1 0>,	/* AN1 */
+				<1 0 &feather_header 20 0>,	/* RST1 */
+				<2 0 &feather_header 15 0>,	/* CS1 */
+				<3 0 &feather_header 6 0>,	/* SCK */
+				<4 0 &feather_header 8 0>,	/* MISO */
+				<5 0 &feather_header 7 0>,	/* MOSI */
+								/* +3.3V */
+								/* GND */
+				<6 0 &feather_header 3 0>,	/* PWM1 */
+				<7 0 &feather_header 17 0>,	/* INT1 */
+				<8 0 &feather_header 9 0>,	/* RX */
+				<9 0 &feather_header 10 0>,	/* TX */
+				<10 0 &feather_header 13 0>,	/* SCL */
+				<11 0 &feather_header 12 0>;	/* SDA */
+								/* +5V */
+								/* GND */
+	};
+
+	mikrobus_header_2: mikrobus-connector-2 {
+		compatible = "mikro-bus";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map =	<0 0 &feather_header 2 0>,	/* AN2 */
+				<1 0 &feather_header 5 0>,	/* RST2 */
+				<2 0 &feather_header 16 0>,	/* CS2 */
+				<3 0 &feather_header 6 0>,	/* SCK */
+				<4 0 &feather_header 8 0>,	/* MISO */
+				<5 0 &feather_header 7 0>,	/* MOSI */
+								/* +3.3V */
+								/* GND */
+				<6 0 &feather_header 4 0>,	/* PWM2 */
+				<7 0 &feather_header 18 0>,	/* INT2 */
+				<8 0 &feather_header 9 0>,	/* RX */
+				<9 0 &feather_header 10 0>,	/* TX */
+				<10 0 &feather_header 13 0>,	/* SCL */
+				<11 0 &feather_header 12 0>;	/* SDA */
+								/* +5V */
+								/* GND */
+	};
+};
+
+feather_serial: &uart1 {};
+feather_i2c: &i2c2 {};
+feather_spi: &spi3 {};
+
+mikrobus_serial: &uart1 {};
+mikrobus_i2c: &i2c2 {};
+mikrobus_spi: &spi3 {};
+mikrobus_header: &mikrobus_header_1 {};
+
+&adc {
+	status = "okay";
+};
+
+&gpiote {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart0_default>;
+	pinctrl-1 = <&uart0_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&uart1 {
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart1_default>;
+	pinctrl-1 = <&uart1_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&i2c2 {
+	status = "okay";
+	pinctrl-0 = <&i2c2_default>;
+	pinctrl-1 = <&i2c2_sleep>;
+	pinctrl-names = "default", "sleep";
+	pcf85063a@51 {
+		compatible = "nxp,pcf85063a";
+		reg = <0x51>;
+	};
+
+	lis2dh: lis2dh@18 {
+		compatible = "st,lis2dh";
+		reg = <0x18>;
+		irq-gpios = <&gpio0 29 0>;
+	};
+
+};
+
+&pwm0 {
+	status = "okay";
+	pinctrl-0 = <&pwm0_default>;
+	pinctrl-1 = <&pwm0_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&spi3 {
+	status = "okay";
+	cs-gpios = <&mikrobus_header_1 2 GPIO_ACTIVE_LOW>, /* CLICK_CS1 */
+	           <&mikrobus_header_2 2 GPIO_ACTIVE_LOW>; /* CLICK_CS2 */
+	pinctrl-0 = <&spi3_default>;
+	pinctrl-1 = <&spi3_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 0x10000>;
+		};
+		slot0_partition: partition@10000 {
+			label = "image-0";
+		};
+		slot0_ns_partition: partition@40000 {
+			label = "image-0-nonsecure";
+		};
+		slot1_partition: partition@80000 {
+			label = "image-1";
+		};
+		slot1_ns_partition: partition@b0000 {
+			label = "image-1-nonsecure";
+		};
+		scratch_partition: partition@f0000 {
+			label = "image-scratch";
+			reg = <0x000f0000 0xa000>;
+		};
+		storage_partition: partition@fa000 {
+			label = "storage";
+			reg = <0x000fa000 0x00006000>;
+		};
+	};
+};
+
+/ {
+
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		sram0_s: image_s@20000000 {
+			/* Secure image memory */
+		};
+
+		sram0_bsd: image_bsd@20010000 {
+			/* BSD (shared) memory */
+		};
+
+		sram0_ns: image_ns@20020000 {
+			/* Non-Secure image memory */
+		};
+	};
+};
+
+/ {
+	vbatt {
+		compatible = "voltage-divider";
+		io-channels = <&adc 7>;
+		output-ohms = <100000>;
+		full-ohms = <(100000 + 100000)>;
+		power-gpios = <&gpio0 25 0>;
+	};
+};
+
+/* Include partition configuration file */
+#include "aludel_mini_nrf9160_partition_conf.dtsi"

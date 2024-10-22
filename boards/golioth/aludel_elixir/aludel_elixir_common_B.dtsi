@@ -1,0 +1,93 @@
+/*
+ * Copyright (c) 2024 Golioth, Inc.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "aludel_elixir_common_B-pinctrl.dtsi"
+
+/ {
+	aliases {
+		accel0 = &lis2dh;
+		spi-flash0 = &w25q32jv;
+	};
+
+	mikrobus_header_1: mikrobus-connector-1 {
+		compatible = "mikro-bus";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map =	<0 0 &gpio0 14 0>,	/* AN1 */
+				<1 0 &gpio0 9 0>,	/* RST1 */
+				<2 0 &gpio0 30 0>,	/* CS1 */
+				<3 0 &gpio0 19 0>,	/* SCK */
+				<4 0 &gpio0 22 0>,	/* MISO */
+				<5 0 &gpio0 21 0>,	/* MOSI */
+							/* +3.3V */
+							/* GND */
+				<6 0 &gpio0 16 0>,	/* PWM1 */
+				<7 0 &gpio0 1 0>,	/* INT1 */
+				<8 0 &gpio0 23 0>,	/* RX */
+				<9 0 &gpio0 24 0>,	/* TX */
+				<10 0 &gpio0 26 0>,	/* SCL */
+				<11 0 &gpio0 27 0>;	/* SDA */
+							/* +5V */
+							/* GND */
+	};
+
+	mikrobus_header_2: mikrobus-connector-2 {
+		compatible = "mikro-bus";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map =	<0 0 &gpio0 15 0>,	/* AN2 */
+				<1 0 &gpio0 11 0>,	/* RST2 */
+				<2 0 &gpio0 0 0>,	/* CS2 */
+				<3 0 &gpio0 19 0>,	/* SCK */
+				<4 0 &gpio0 22 0>,	/* MISO */
+				<5 0 &gpio0 21 0>,	/* MOSI */
+							/* +3.3V */
+							/* GND */
+				<6 0 &gpio0 17 0>,	/* PWM2 */
+				<7 0 &gpio0 2 0>,	/* INT2 */
+				<8 0 &gpio0 23 0>,	/* RX */
+				<9 0 &gpio0 24 0>,	/* TX */
+				<10 0 &gpio0 26 0>,	/* SCL */
+				<11 0 &gpio0 27 0>;	/* SDA */
+							/* +5V */
+							/* GND */
+	};
+};
+
+&i2c2 {
+	lis2dh: lis2dh@18 {
+		compatible = "st,lis2dh";
+		reg = <0x18>;
+		irq-gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;
+	};
+
+	bme280: bme280@76 {
+		compatible = "bosch,bme280";
+		reg = <0x76>;
+	};
+};
+
+&spi3 {
+	cs-gpios = <&mikrobus_header_1 2 GPIO_ACTIVE_LOW>, /* CLICK_CS1 */
+	           <&mikrobus_header_2 2 GPIO_ACTIVE_LOW>, /* CLICK_CS2 */
+		   <&gpio0 7 GPIO_ACTIVE_LOW>;             /* FLASH_CS */
+
+	w25q32jv: w25q32jv@2 {
+		compatible = "jedec,spi-nor";
+		status = "disabled";
+		reg = <2>;
+		spi-max-frequency = <40000000>;
+		wp-gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
+		hold-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
+		size = <0x2000000>;
+		has-dpd;
+		t-enter-dpd = <3000>;
+		t-exit-dpd = <30000>;
+		jedec-id = [ ef 40 16  ];
+	};
+};

@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2024 Golioth, Inc.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "aludel_elixir_common_A-pinctrl.dtsi"
+
+/ {
+	mikrobus_header_1: mikrobus-connector-1 {
+		compatible = "mikro-bus";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map =	<0 0 &gpio0 14 0>,	/* AN1 */
+							/* RST1 */
+				<2 0 &gpio0 30 0>,	/* CS1 */
+				<3 0 &gpio0 19 0>,	/* SCK */
+				<4 0 &gpio0 22 0>,	/* MISO */
+				<5 0 &gpio0 21 0>,	/* MOSI */
+							/* +3.3V */
+							/* GND */
+				<6 0 &gpio0 16 0>,	/* PWM1 */
+				<7 0 &gpio0 1 0>,	/* INT1 */
+				<8 0 &gpio0 24 0>,	/* RX */
+				<9 0 &gpio0 23 0>,	/* TX */
+				<10 0 &gpio0 26 0>,	/* SCL */
+				<11 0 &gpio0 27 0>;	/* SDA */
+							/* +5V */
+							/* GND */
+	};
+
+	mikrobus_header_2: mikrobus-connector-2 {
+		compatible = "mikro-bus";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map =	<0 0 &gpio0 15 0>,	/* AN2 */
+							/* RST2 */
+				<2 0 &gpio0 0 0>,	/* CS2 */
+				<3 0 &gpio0 19 0>,	/* SCK */
+				<4 0 &gpio0 22 0>,	/* MISO */
+				<5 0 &gpio0 21 0>,	/* MOSI */
+							/* +3.3V */
+							/* GND */
+				<6 0 &gpio0 17 0>,	/* PWM2 */
+				<7 0 &gpio0 2 0>,	/* INT2 */
+				<8 0 &gpio0 24 0>,	/* RX */
+				<9 0 &gpio0 23 0>,	/* TX */
+				<10 0 &gpio0 26 0>,	/* SCL */
+				<11 0 &gpio0 27 0>;	/* SDA */
+							/* +5V */
+							/* GND */
+	};
+};
+
+mikrobus_header: &mikrobus_header_1 {};

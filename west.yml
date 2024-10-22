@@ -32,11 +32,6 @@ manifest:
           - trusted-firmware-m
           - zcbor
 
-    - name: golioth-zephyr-boards
-      path: deps/modules/lib/golioth-boards
-      revision: v2.0.1
-      url: https://github.com/golioth/golioth-zephyr-boards
-
     - name: libostentus
       path: deps/modules/lib/libostentus
       revision: v2.0.0

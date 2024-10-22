@@ -1,0 +1,213 @@
+/*
+ * Copyright (c) 2018-2020 Nordic Semiconductor ASA
+ * Copyright (c) 2023 Golioth, Inc.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "aludel_elixir_common-pinctrl.dtsi"
+
+/ {
+	model = "Golioth Aludel Elixir";
+	compatible = "golioth,aludel-elixir";
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,uart-mcumgr = &uart0;
+		nordic,modem-trace-uart = &uart1;
+	};
+
+	buttons {
+		compatible = "gpio-keys";
+
+		mode_button: mode-button {
+			gpios = <&gpio0 12 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+
+		user_button: user-button {
+			gpios = <&gpio0 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+	};
+
+	pwm-buzzers {
+		compatible = "pwm-leds";
+
+		pwm_buzzer0: pwm-buzzer-0 {
+			pwms = <&pwm0 0 PWM_HZ(440) PWM_POLARITY_NORMAL>;
+		};
+	};
+
+	reg_mikrobus_3v3: reg-mikrobus-3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "reg-mikrobus-3v3";
+		enable-gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
+		regulator-boot-on;
+		startup-delay-us = <2000>;
+		off-on-delay-us = <2000>;
+	};
+
+	reg_mikrobus_5v: reg-mikrobus-5v {
+		compatible = "regulator-fixed";
+		regulator-name = "reg-mikrobus-5v";
+		enable-gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+		regulator-boot-on;
+		startup-delay-us = <2000>;
+		off-on-delay-us = <2000>;
+	};
+
+	aliases {
+		sw0 = &mode_button;
+		sw1 = &user_button;
+		mcuboot-button0 = &mode_button;
+		watchdog0 = &wdt0;
+		pwm-buzzer0 = &pwm_buzzer0;
+		rtc0 = &pcf85063a;
+		mikrobus-serial = &mikrobus_serial;
+		mikrobus-i2c = &mikrobus_i2c;
+		mikrobus-spi = &mikrobus_spi;
+		/* Deprecated click-* aliases (use mikrobus-* aliases instead) */
+		click-uart = &mikrobus_serial;
+		click-i2c = &mikrobus_i2c;
+	};
+};
+
+/* mikroBUS interface node labels */
+mikrobus_serial: &uart1 {};
+mikrobus_i2c: &i2c2 {};
+mikrobus_spi: &spi3 {};
+
+/* QWIIC interface node labels */
+qwiic_i2c: &i2c2 {};
+
+&adc {
+	status = "okay";
+};
+
+&gpiote {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart0_default>;
+	pinctrl-1 = <&uart0_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&uart1 {
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart1_default>;
+	pinctrl-1 = <&uart1_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&i2c2 {
+	status = "okay";
+	pinctrl-0 = <&i2c2_default>;
+	pinctrl-1 = <&i2c2_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	max17262@36 {
+		compatible = "maxim,max17262";
+		reg = <0x36>;
+		design-voltage = <4200>;
+		desired-voltage = <3700>;
+		desired-charging-current = <800>;
+		design-cap = <850>;
+		empty-voltage = <3300>;
+		recovery-voltage = <3880>;
+		charge-voltage = <4200>;
+		status = "okay";
+	};
+
+	/* Needs external driver: https://github.com/circuitdojo/pcf85063a */
+	pcf85063a: pcf85063a@51 {
+		compatible = "nxp,pcf85063a";
+		reg = <0x51>;
+	};
+
+	/* TODO: add a node for ATECC608A once it is supported in Zephyr
+	 * https://github.com/zephyrproject-rtos/zephyr/pull/69920
+	 */
+};
+
+&spi3 {
+	status = "okay";
+	pinctrl-0 = <&spi3_default>;
+	pinctrl-1 = <&spi3_sleep>;
+	pinctrl-names = "default", "sleep";
+	cs-gpios = <&mikrobus_header_1 2 GPIO_ACTIVE_LOW>, /* CLICK_CS1 */
+	           <&mikrobus_header_2 2 GPIO_ACTIVE_LOW>; /* CLICK_CS2 */
+};
+
+&pwm0 {
+	status = "okay";
+	pinctrl-0 = <&pwm0_default>;
+	pinctrl-1 = <&pwm0_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 0x10000>;
+		};
+
+		slot0_partition: partition@10000 {
+			label = "image-0";
+		};
+
+		slot0_ns_partition: partition@50000 {
+			label = "image-0-nonsecure";
+		};
+
+		slot1_partition: partition@80000 {
+			label = "image-1";
+		};
+
+		slot1_ns_partition: partition@c0000 {
+			label = "image-1-nonsecure";
+		};
+
+		/* 0xf0000 to 0xf7fff reserved for TF-M partitions */
+		storage_partition: partition@f8000 {
+			label = "storage";
+			reg = <0x000f8000 0x00008000>;
+		};
+	};
+};
+
+/ {
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		sram0_s: image_s@20000000 {
+			/* Secure image memory */
+		};
+
+		sram0_modem: image_modem@20016000 {
+			/* Modem (shared) memory */
+		};
+
+		sram0_ns: image_ns@20020000 {
+			/* Non-Secure image memory */
+		};
+	};
+};
+
+/* Include partition configuration file */
+#include "aludel_elixir_partition_conf.dtsi"

@@ -1,0 +1,14 @@
+board:
+  name: aludel_elixir
+  vendor: golioth
+  revision:
+    format: letter
+    default: B
+    exact: true
+    revisions:
+    - name: A
+    - name: B
+  socs:
+    - name: nrf9160
+      variants:
+        - name: ns
