@@ -310,12 +310,12 @@ void log_battery_data(void)
 	LOG_INF("Battery measurement: voltage=%s, level=%s", get_batt_v_str(), get_batt_lvl_str());
 }
 
-static void async_error_handler(struct golioth_client *client,
-				const struct golioth_response *response, const char *path,
+static void async_error_handler(struct golioth_client *client, enum golioth_status status,
+				const struct golioth_coap_rsp_code *coap_rsp_code, const char *path,
 				void *arg)
 {
-	if (response->status != GOLIOTH_OK) {
-		LOG_ERR("Failed to stream battery data: %d", response->status);
+	if (status != GOLIOTH_OK) {
+		LOG_ERR("Failed to stream battery data: %d", status);
 		return;
 	}
 }
