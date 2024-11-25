@@ -14,7 +14,7 @@ LOG_MODULE_REGISTER(app_settings, LOG_LEVEL_DBG);
 
 static int32_t _loop_delay_s = 60;
 #define LOOP_DELAY_S_MAX 43200
-#define LOOP_DELAY_S_MIN 0
+#define LOOP_DELAY_S_MIN 1
 
 int32_t get_loop_delay_s(void)
 {
