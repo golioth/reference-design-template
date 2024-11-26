@@ -8,6 +8,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [template_v2.5.0] - 2024-11-26
+
+### Changed
+
+- Upgrade to Golioth Firmware SDK at
+  [`v0.16.0`](https://github.com/golioth/golioth-firmware-sdk/releases/tag/v0.16.0) which is based
+  on NCS v2.8
+
 ## [template_v2.4.1] - 2024-09-11
 
 ### Changed
