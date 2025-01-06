@@ -31,7 +31,7 @@ Install the Python virtual environment (recommended)
    mkdir golioth-reference-design-template
    python -m venv golioth-reference-design-template/.venv
    source golioth-reference-design-template/.venv/bin/activate
-   pip install wheel west
+   pip install wheel west ecdsa
 
 Use ``west`` to initialize and install
 ======================================
