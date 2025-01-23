@@ -8,6 +8,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [template_v2.6.0] - 2024-01-24
+
+### Changed
+
+- Upgrade to Golioth Firmware SDK at
+  [`v0.17.0`](https://github.com/golioth/golioth-firmware-sdk/releases/tag/v0.17.0)
+
 ## [template_v2.5.0] - 2024-11-26
 
 ### Changed
