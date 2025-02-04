@@ -21,8 +21,8 @@ reference design's name.
 ## Golioth Features
 
 This app currently implements Over-the-Air (OTA) firmware updates,
-Settings Service, Logging, RPC, and both LightDB State and LightDB
-Stream data.
+Settings Service, Logging, RPC, and time-series Stream data, and LightDB
+State data.
 
 ### Settings Service
 
