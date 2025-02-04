@@ -73,8 +73,9 @@ service.
 If your board includes a battery, voltage and level readings
 will be sent to the `battery` path.
 
-> Note: your Golioth project must have a Pipeline enabled to receive
-> this data. See the [Add Pipeline to Golioth](#add-pipeline-to-golioth)
+> [!NOTE]
+> Your Golioth project must have a Pipeline enabled to receive this
+> data. See the [Add Pipeline to Golioth](#add-pipeline-to-golioth)
 > section below.
 
 ### Stateful Data (LightDB State)
@@ -113,9 +114,10 @@ This application includes the ability to perform Over-the-Air (OTA)
 firmware updates. To do so, you need a binary compiled with a different
 version number than what is currently running on the device.
 
-> Note: if a newer release is available than what your device is
-> currently running you, may download the pre-compiled binary that ends
-> in `_update.bin` and use it in step 2 below.
+> [!NOTE]
+> If a newer release is available than what your device is currently
+> running, you may download the pre-compiled binary that ends in
+> `_update.bin` and use it in step 2 below.
 
 1. Update the version number in the `VERSION` file and perform a
    pristine (important) build to incorporate the version change.
@@ -167,6 +169,7 @@ this pipeline entry.
 
 ## Local set up
 
+> [!IMPORTANT]
 > Do not clone this repo using git. Zephyr's `west` meta tool should be
 > used to set up your local workspace.
 
@@ -205,6 +208,7 @@ Prior to building, update `VERSION` file to reflect the firmware version
 number you want to assign to this build. Then run the following commands
 to build and program the firmware onto the device.
 
+> [!WARNING]
 > You must perform a pristine build (use `-p` or remove the `build`
 > directory) after changing the firmware version number in the `VERSION`
 > file for the change to take effect.
