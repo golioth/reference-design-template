@@ -73,6 +73,10 @@ service.
 If your board includes a battery, voltage and level readings
 will be sent to the `battery` path.
 
+> Note: your Golioth project must have a Pipeline enabled to receive
+> this data. See the [Add Pipeline to Golioth](#add-pipeline-to-golioth)
+> section below.
+
 ### Stateful Data (LightDB State)
 
 The concept of Digital Twin is demonstrated with the LightDB State
@@ -136,6 +140,31 @@ for more info.
 Please refer to the comments in each header file for a
 service-by-service explanation of this template.
 
+# Add Pipeline to Golioth
+
+Golioth uses [Pipelines](https://docs.golioth.io/data-routing) to route
+stream data. This gives you flexibility to change your data routing
+without requiring updated device firmware.
+
+Whenever sending stream data, you must enable a pipeline in your Golioth
+project to configure how that data is handled. Add the contents of
+`pipelines/cbor-to-lightdb.yml` as a new pipeline as follows (note that
+this is the default pipeline for new projects and may already be
+present):
+
+1.  Navigate to your project on the Golioth web console.
+2.  Select `Pipelines` from the left sidebar and click the `Create`
+    button.
+3.  Give your new pipeline a name and paste the pipeline configuration
+    into the editor.
+4.  Click the toggle in the bottom right to enable the pipeline and
+    then click `Create`.
+
+All data streamed to Golioth in CBOR format will now be routed to
+LightDB Stream and may be viewed using the web console. You may change
+this behavior at any time without updating firmware simply by editing
+this pipeline entry.
+
 # Local set up
 
 > Do not clone this repo using git. Zephyr's `west` meta tool should be
@@ -159,42 +188,6 @@ west init -m git@github.com:golioth/reference-design-template.git .
 west update
 west zephyr-export
 pip install -r deps/zephyr/scripts/requirements.txt
-```
-
-# Hardware Variations
-
-This reference design may be built for a variety of different boards.
-
-Prior to building, update `VERSION` file to reflect the firmware version
-number you want to assign to this build. Then run the following commands
-to build and program the firmware onto the device.
-
-## Golioth Aludel Mini
-
-This reference design may be built for the Golioth Aludel Mini board.
-
-``` text
-$ (.venv) west build -p -b aludel_mini/nrf9160/ns --sysbuild app
-$ (.venv) west flash
-```
-
-## Golioth Aludel Elixir
-
-This reference design may be built for the Golioth Aludel Elixir board.
-By default this will build for the latest hardware revision of this
-board.
-
-``` text
-$ (.venv) west build -p -b aludel_elixir/nrf9160/ns --sysbuild app
-$ (.venv) west flash
-```
-
-To build for a specific board revision (e.g. Rev A) add the revision
-suffix `@<rev>`.
-
-``` text
-$ (.venv) west build -p -b aludel_elixir@A/nrf9160/ns --sysbuild app
-$ (.venv) west flash
 ```
 
 # Building the application
@@ -230,30 +223,37 @@ uart:~$ settings set golioth/psk <my-psk>
 uart:~$ kernel reboot cold
 ```
 
-# Add Pipeline to Golioth
+# Hardware Variations
 
-Golioth uses [Pipelines](https://docs.golioth.io/data-routing) to route
-stream data. This gives you flexibility to change your data routing
-without requiring updated device firmware.
+This reference design may be built for a variety of different boards.
 
-Whenever sending stream data, you must enable a pipeline in your Golioth
-project to configure how that data is handled. Add the contents of
-`pipelines/cbor-to-lightdb.yml` as a new pipeline as follows (note that
-this is the default pipeline for new projects and may already be
-present):
+## Golioth Aludel Mini
 
-1.  Navigate to your project on the Golioth web console.
-2.  Select `Pipelines` from the left sidebar and click the `Create`
-    button.
-3.  Give your new pipeline a name and paste the pipeline configuration
-    into the editor.
-4.  Click the toggle in the bottom right to enable the pipeline and
-    then click `Create`.
+This reference design may be built for the Golioth Aludel Mini board.
 
-All data streamed to Golioth in CBOR format will now be routed to
-LightDB Stream and may be viewed using the web console. You may change
-this behavior at any time without updating firmware simply by editing
-this pipeline entry.
+``` text
+$ (.venv) west build -p -b aludel_mini/nrf9160/ns --sysbuild app
+$ (.venv) west flash
+```
+
+## Golioth Aludel Elixir
+
+This reference design may be built for the Golioth Aludel Elixir board.
+By default this will build for the latest hardware revision of this
+board.
+
+``` text
+$ (.venv) west build -p -b aludel_elixir/nrf9160/ns --sysbuild app
+$ (.venv) west flash
+```
+
+To build for a specific board revision (e.g. Rev A) add the revision
+suffix `@<rev>`.
+
+``` text
+$ (.venv) west build -p -b aludel_elixir@A/nrf9160/ns --sysbuild app
+$ (.venv) west flash
+```
 
 # External Libraries
 
