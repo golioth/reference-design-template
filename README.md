@@ -58,28 +58,50 @@ the [Golioth Console](https://console.golioth.io).
       - `3`: `LOG_LEVEL_INF`
       - `4`: `LOG_LEVEL_DBG`
 
-## LightDB State and LightDB Stream data
+## Time-Series Stream data
 
-### Time-Series Data (LightDB Stream)
+Sensor readings are simulated using an up-counting timer. The value is
+periodically sent to the `sensor/counter` path of the Golioth Stream
+service.
 
-An up-counting timer is periodically sent to the `sensor/counter`
-endpoint of the LightDB Stream service to simulate sensor data. If your
-board includes a battery, voltage and level readings will be sent to the
-`battery` endpoint.
+``` json
+{
+  "counter": 1
+}
+```
+
+If your board includes a battery, voltage and level readings
+will be sent to the `battery` path.
 
 ### Stateful Data (LightDB State)
 
 The concept of Digital Twin is demonstrated with the LightDB State
-`example_int0` and `example_int1` variables that are members of the
-`desired` and `state` endpoints.
+`example_int0` and `example_int1` variables that are subpaths of the
+`desired` and `state` paths.
 
   - `desired` values may be changed from the cloud side. The device will
     recognize these, validate them for \[0..65535\] bounding, and then
-    reset these endpoints to `-1`
-  - `state` values will be updated by the device whenever a valid value
-    is received from the `desired` endpoints. The cloud may read the
-    `state` endpoints to determine device status, but only the device
+    reset these values to `-1`
+  - `state` values will be updated by the device to reflect the device's
+    actual stored value. The cloud may read the `state` endpoints to
+    determine device status. In this arrangement, only the device
     should ever write to the `state` endpoints.
+
+``` json
+{
+  "desired": {
+    "example_int0": -1,
+    "example_int1": -1
+  },
+  "state": {
+    "example_int0": 0,
+    "example_int1": 1
+  }
+}
+```
+
+But default the state values will be `0` and `1`. Try updating the
+`desired` values and observe how the device updates its state.
 
 ## OTA Firmware Update
 
