@@ -12,6 +12,12 @@ Golioth features implemented in basic form. Search the project for the
 word `template` and `rd_template` and update those occurrences with your
 reference design's name.
 
+# Supported Hardware
+
+- Nordic nRF9160-DK
+- Golioth Aludel Elixir
+- Golioth Aludel Mini
+
 # Local set up
 
 > Do not clone this repo using git. Zephyr's `west` meta tool should be
