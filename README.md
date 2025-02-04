@@ -1,5 +1,11 @@
 # Overview
 
+The Reference Design Template demonstrates Golioth Device Management and
+Data Routing. The application connects to Golioth, streams time-series
+data to simulate senor readings, and sends Log messages to the cloud.
+From the Golioth web console you may deploy OTA firmware updates, adjust
+device Settings, and issue Remote Procedure Calls (RPCs).
+
 Use this repo as a template when beginning work on a new Golioth
 Reference Design. It is set up as a standalone repository, with all
 Golioth features implemented in basic form. Search the project for the
