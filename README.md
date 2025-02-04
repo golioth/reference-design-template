@@ -106,16 +106,26 @@ But default the state values will be `0` and `1`. Try updating the
 ## OTA Firmware Update
 
 This application includes the ability to perform Over-the-Air (OTA)
-firmware updates:
+firmware updates. To do so, you need a binary compiled with a different
+version number than what is currently running on the device.
 
-1.  Update the version number in the
-    <span class="title-ref">VERSION</span> file and perform a pristine
-    (important) build to incorporate the version change.
-2.  Upload the
-    <span class="title-ref">build/app/zephyr/zephyr.signed.bin</span>
-    file as an artifact for your Golioth project using
-    <span class="title-ref">main</span> as the package name.
-3.  Create and roll out a release based on this artifact.
+> Note: if a newer release is available than what your device is
+> currently running you, may download the pre-compiled binary that ends
+> in `_update.bin` and use it in step 2 below.
+
+1. Update the version number in the `VERSION` file and perform a
+   pristine (important) build to incorporate the version change.
+2. Upload the `build/app/zephyr/zephyr.signed.bin` file as a Package for
+   your Golioth project.
+
+   - Use `main` as the package name.
+   - Use the same version number from step 1.
+
+3. Create a Cohort and add your device to it.
+4. Create a Deployment for your Cohort using the package name and
+   version number from step 2.
+5. Devices in your Cohort will automatically upgrade to the most
+   recently deployed firmware.
 
 Visit [the Golioth Docs OTA Firmware Upgrade
 page](https://docs.golioth.io/firmware/golioth-firmware-sdk/firmware-upgrade/firmware-upgrade)
