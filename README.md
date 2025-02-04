@@ -18,89 +18,6 @@ reference design's name.
 - Golioth Aludel Elixir
 - Golioth Aludel Mini
 
-# Local set up
-
-> Do not clone this repo using git. Zephyr's `west` meta tool should be
-> used to set up your local workspace.
-
-## Install the Python virtual environment (recommended)
-
-``` shell
-cd ~
-mkdir golioth-reference-design-template
-python -m venv golioth-reference-design-template/.venv
-source golioth-reference-design-template/.venv/bin/activate
-pip install wheel west ecdsa
-```
-
-## Use `west` to initialize and install
-
-``` shell
-cd ~/golioth-reference-design-template
-west init -m git@github.com:golioth/reference-design-template.git .
-west update
-west zephyr-export
-pip install -r deps/zephyr/scripts/requirements.txt
-```
-
-# Building the application
-
-Build the Zephyr sample application for the [Nordic nRF9160
-DK](https://www.nordicsemi.com/Products/Development-hardware/nrf9160-dk)
-(`nrf9160dk_nrf9160_ns`) from the top level of your project. After a
-successful build you will see a new `build` directory. Note that any
-changes (and git commits) to the project itself will be inside the `app`
-folder. The `build` and `deps` directories being one level higher
-prevents the repo from cataloging all of the changes to the dependencies
-and the build (so no `.gitignore` is needed).
-
-Prior to building, update `VERSION` file to reflect the firmware version
-number you want to assign to this build. Then run the following commands
-to build and program the firmware onto the device.
-
-> You must perform a pristine build (use `-p` or remove the `build`
-> directory) after changing the firmware version number in the `VERSION`
-> file for the change to take effect.
-
-``` text
-$ (.venv) west build -p -b nrf9160dk/nrf9160/ns --sysbuild app
-$ (.venv) west flash
-```
-
-Configure PSK-ID and PSK using the device shell based on your Golioth
-credentials and reboot:
-
-``` text
-uart:~$ settings set golioth/psk-id <my-psk-id@my-project>
-uart:~$ settings set golioth/psk <my-psk>
-uart:~$ kernel reboot cold
-```
-
-# Add Pipeline to Golioth
-
-Golioth uses [Pipelines](https://docs.golioth.io/data-routing) to route
-stream data. This gives you flexibility to change your data routing
-without requiring updated device firmware.
-
-Whenever sending stream data, you must enable a pipeline in your Golioth
-project to configure how that data is handled. Add the contents of
-`pipelines/cbor-to-lightdb.yml` as a new pipeline as follows (note that
-this is the default pipeline for new projects and may already be
-present):
-
-1.  Navigate to your project on the Golioth web console.
-2.  Select `Pipelines` from the left sidebar and click the `Create`
-    button.
-3.  Give your new pipeline a name and paste the pipeline configuration
-    into the editor.
-4.  Click the toggle in the bottom right to enable the pipeline and
-    then click `Create`.
-
-All data streamed to Golioth in CBOR format will now be routed to
-LightDB Stream and may be viewed using the web console. You may change
-this behavior at any time without updating firmware simply by editing
-this pipeline entry.
-
 # Golioth Features
 
 This app currently implements Over-the-Air (OTA) firmware updates,
@@ -164,10 +81,53 @@ The concept of Digital Twin is demonstrated with the LightDB State
     `state` endpoints to determine device status, but only the device
     should ever write to the `state` endpoints.
 
+## OTA Firmware Update
+
+This application includes the ability to perform Over-the-Air (OTA)
+firmware updates:
+
+1.  Update the version number in the
+    <span class="title-ref">VERSION</span> file and perform a pristine
+    (important) build to incorporate the version change.
+2.  Upload the
+    <span class="title-ref">build/app/zephyr/zephyr.signed.bin</span>
+    file as an artifact for your Golioth project using
+    <span class="title-ref">main</span> as the package name.
+3.  Create and roll out a release based on this artifact.
+
+Visit [the Golioth Docs OTA Firmware Upgrade
+page](https://docs.golioth.io/firmware/golioth-firmware-sdk/firmware-upgrade/firmware-upgrade)
+for more info.
+
 ## Further Information in Header Files
 
 Please refer to the comments in each header file for a
 service-by-service explanation of this template.
+
+# Local set up
+
+> Do not clone this repo using git. Zephyr's `west` meta tool should be
+> used to set up your local workspace.
+
+## Install the Python virtual environment (recommended)
+
+``` shell
+cd ~
+mkdir golioth-reference-design-template
+python -m venv golioth-reference-design-template/.venv
+source golioth-reference-design-template/.venv/bin/activate
+pip install wheel west ecdsa
+```
+
+## Use `west` to initialize and install
+
+``` shell
+cd ~/golioth-reference-design-template
+west init -m git@github.com:golioth/reference-design-template.git .
+west update
+west zephyr-export
+pip install -r deps/zephyr/scripts/requirements.txt
+```
 
 # Hardware Variations
 
@@ -205,23 +165,63 @@ $ (.venv) west build -p -b aludel_elixir@A/nrf9160/ns --sysbuild app
 $ (.venv) west flash
 ```
 
-# OTA Firmware Update
+# Building the application
 
-This application includes the ability to perform Over-the-Air (OTA)
-firmware updates:
+Build the Zephyr sample application for the [Nordic nRF9160
+DK](https://www.nordicsemi.com/Products/Development-hardware/nrf9160-dk)
+(`nrf9160dk_nrf9160_ns`) from the top level of your project. After a
+successful build you will see a new `build` directory. Note that any
+changes (and git commits) to the project itself will be inside the `app`
+folder. The `build` and `deps` directories being one level higher
+prevents the repo from cataloging all of the changes to the dependencies
+and the build (so no `.gitignore` is needed).
 
-1.  Update the version number in the
-    <span class="title-ref">VERSION</span> file and perform a pristine
-    (important) build to incorporate the version change.
-2.  Upload the
-    <span class="title-ref">build/app/zephyr/zephyr.signed.bin</span>
-    file as an artifact for your Golioth project using
-    <span class="title-ref">main</span> as the package name.
-3.  Create and roll out a release based on this artifact.
+Prior to building, update `VERSION` file to reflect the firmware version
+number you want to assign to this build. Then run the following commands
+to build and program the firmware onto the device.
 
-Visit [the Golioth Docs OTA Firmware Upgrade
-page](https://docs.golioth.io/firmware/golioth-firmware-sdk/firmware-upgrade/firmware-upgrade)
-for more info.
+> You must perform a pristine build (use `-p` or remove the `build`
+> directory) after changing the firmware version number in the `VERSION`
+> file for the change to take effect.
+
+``` text
+$ (.venv) west build -p -b nrf9160dk/nrf9160/ns --sysbuild app
+$ (.venv) west flash
+```
+
+Configure PSK-ID and PSK using the device shell based on your Golioth
+credentials and reboot:
+
+``` text
+uart:~$ settings set golioth/psk-id <my-psk-id@my-project>
+uart:~$ settings set golioth/psk <my-psk>
+uart:~$ kernel reboot cold
+```
+
+# Add Pipeline to Golioth
+
+Golioth uses [Pipelines](https://docs.golioth.io/data-routing) to route
+stream data. This gives you flexibility to change your data routing
+without requiring updated device firmware.
+
+Whenever sending stream data, you must enable a pipeline in your Golioth
+project to configure how that data is handled. Add the contents of
+`pipelines/cbor-to-lightdb.yml` as a new pipeline as follows (note that
+this is the default pipeline for new projects and may already be
+present):
+
+1.  Navigate to your project on the Golioth web console.
+2.  Select `Pipelines` from the left sidebar and click the `Create`
+    button.
+3.  Give your new pipeline a name and paste the pipeline configuration
+    into the editor.
+4.  Click the toggle in the bottom right to enable the pipeline and
+    then click `Create`.
+
+All data streamed to Golioth in CBOR format will now be routed to
+LightDB Stream and may be viewed using the web console. You may change
+this behavior at any time without updating firmware simply by editing
+this pipeline entry.
 
 # External Libraries
 
