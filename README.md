@@ -12,19 +12,19 @@ Golioth features implemented in basic form. Search the project for the
 word `template` and `rd_template` and update those occurrences with your
 reference design's name.
 
-# Supported Hardware
+## Supported Hardware
 
 - Nordic nRF9160-DK
 - Golioth Aludel Elixir
 - Golioth Aludel Mini
 
-# Golioth Features
+## Golioth Features
 
 This app currently implements Over-the-Air (OTA) firmware updates,
 Settings Service, Logging, RPC, and both LightDB State and LightDB
 Stream data.
 
-## Settings Service
+### Settings Service
 
 The following settings should be set in the Device Settings menu of the
 [Golioth Console](https://console.golioth.io).
@@ -35,7 +35,7 @@ The following settings should be set in the Device Settings menu of the
 
     Default value is `60` seconds.
 
-## Remote Procedure Call (RPC) Service
+### Remote Procedure Call (RPC) Service
 
 The following RPCs can be initiated in the Remote Procedure Call menu of
 the [Golioth Console](https://console.golioth.io).
@@ -58,7 +58,7 @@ the [Golioth Console](https://console.golioth.io).
       - `3`: `LOG_LEVEL_INF`
       - `4`: `LOG_LEVEL_DBG`
 
-## Time-Series Stream data
+### Time-Series Stream data
 
 Sensor readings are simulated using an up-counting timer. The value is
 periodically sent to the `sensor/counter` path of the Golioth Stream
@@ -107,7 +107,7 @@ The concept of Digital Twin is demonstrated with the LightDB State
 But default the state values will be `0` and `1`. Try updating the
 `desired` values and observe how the device updates its state.
 
-## OTA Firmware Update
+### OTA Firmware Update
 
 This application includes the ability to perform Over-the-Air (OTA)
 firmware updates. To do so, you need a binary compiled with a different
@@ -135,12 +135,12 @@ Visit [the Golioth Docs OTA Firmware Upgrade
 page](https://docs.golioth.io/firmware/golioth-firmware-sdk/firmware-upgrade/firmware-upgrade)
 for more info.
 
-## Further Information in Header Files
+### Further Information in Header Files
 
 Please refer to the comments in each header file for a
 service-by-service explanation of this template.
 
-# Add Pipeline to Golioth
+## Add Pipeline to Golioth
 
 Golioth uses [Pipelines](https://docs.golioth.io/data-routing) to route
 stream data. This gives you flexibility to change your data routing
@@ -165,12 +165,12 @@ LightDB Stream and may be viewed using the web console. You may change
 this behavior at any time without updating firmware simply by editing
 this pipeline entry.
 
-# Local set up
+## Local set up
 
 > Do not clone this repo using git. Zephyr's `west` meta tool should be
 > used to set up your local workspace.
 
-## Install the Python virtual environment (recommended)
+### Install the Python virtual environment (recommended)
 
 ``` shell
 cd ~
@@ -180,7 +180,7 @@ source golioth-reference-design-template/.venv/bin/activate
 pip install wheel west ecdsa
 ```
 
-## Use `west` to initialize and install
+### Use `west` to initialize and install
 
 ``` shell
 cd ~/golioth-reference-design-template
@@ -190,7 +190,7 @@ west zephyr-export
 pip install -r deps/zephyr/scripts/requirements.txt
 ```
 
-# Building the application
+## Building the application
 
 Build the Zephyr sample application for the [Nordic nRF9160
 DK](https://www.nordicsemi.com/Products/Development-hardware/nrf9160-dk)
@@ -223,11 +223,11 @@ uart:~$ settings set golioth/psk <my-psk>
 uart:~$ kernel reboot cold
 ```
 
-# Hardware Variations
+## Hardware Variations
 
 This reference design may be built for a variety of different boards.
 
-## Golioth Aludel Mini
+### Golioth Aludel Mini
 
 This reference design may be built for the Golioth Aludel Mini board.
 
@@ -236,7 +236,7 @@ $ (.venv) west build -p -b aludel_mini/nrf9160/ns --sysbuild app
 $ (.venv) west flash
 ```
 
-## Golioth Aludel Elixir
+### Golioth Aludel Elixir
 
 This reference design may be built for the Golioth Aludel Elixir board.
 By default this will build for the latest hardware revision of this
@@ -255,7 +255,7 @@ $ (.venv) west build -p -b aludel_elixir@A/nrf9160/ns --sysbuild app
 $ (.venv) west flash
 ```
 
-# External Libraries
+## External Libraries
 
 The following code libraries are installed by default. If you are not
 using the custom hardware to which they apply, you can safely remove
@@ -270,7 +270,7 @@ calls from the C code.
     is a helper library for querying, formatting, and returning network
     connection information via Zephyr log or Golioth RPC
 
-# Using this template to start a new project
+## Using this template to start a new project
 
 Fork this template to create your own Reference Design. After checking
 out your fork, we recommend the following workflow to pull in future
