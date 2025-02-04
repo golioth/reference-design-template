@@ -1,4 +1,4 @@
-# Overview
+# Golioth Reference Design Template
 
 The Reference Design Template demonstrates Golioth Device Management and
 Data Routing. The application connects to Golioth, streams time-series
