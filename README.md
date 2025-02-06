@@ -279,3 +279,8 @@ git merge template_v1.0.0
 git add resolved_files
 git commit
 ```
+
+## Have Questions?
+
+Please get in touch with Golioth engineers by starting a new thread on
+the [Golioth Forum](https://forum.golioth.io/).
