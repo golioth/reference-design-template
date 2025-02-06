@@ -232,38 +232,6 @@ uart:~$ settings set golioth/psk <my-psk>
 uart:~$ kernel reboot cold
 ```
 
-## Hardware Variations
-
-This reference design may be built for a variety of different boards.
-
-### Golioth Aludel Mini
-
-This reference design may be built for the Golioth Aludel Mini board.
-
-``` text
-$ (.venv) west build -p -b aludel_mini/nrf9160/ns --sysbuild app
-$ (.venv) west flash
-```
-
-### Golioth Aludel Elixir
-
-This reference design may be built for the Golioth Aludel Elixir board.
-By default this will build for the latest hardware revision of this
-board.
-
-``` text
-$ (.venv) west build -p -b aludel_elixir/nrf9160/ns --sysbuild app
-$ (.venv) west flash
-```
-
-To build for a specific board revision (e.g. Rev A) add the revision
-suffix `@<rev>`.
-
-``` text
-$ (.venv) west build -p -b aludel_elixir@A/nrf9160/ns --sysbuild app
-$ (.venv) west flash
-```
-
 ## External Libraries
 
 The following code libraries are installed by default. If you are not
