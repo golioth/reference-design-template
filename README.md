@@ -18,6 +18,11 @@ reference design's name.
 - Golioth Aludel Elixir
 - Golioth Aludel Mini
 
+### Additional Sensors/Components
+
+The Reference Design Template doesn't require any additional sensors or
+components.
+
 ## Golioth Features
 
 This app currently implements Over-the-Air (OTA) firmware updates,
