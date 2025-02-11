@@ -90,7 +90,7 @@ static enum golioth_rpc_status on_play_song(zcbor_state_t *request_params_array,
 					    zcbor_state_t *response_detail_map,
 					    void *callback_arg)
 {
-#if defined(CONFIG_BOARD_THINGY91_NRF9160_NS) || defined(CONFIG_BOARD_ALUDEL_ELIXIR_NRF9160_NS)
+#if defined(CONFIG_BOARD_ALUDEL_ELIXIR_NRF9160_NS)
 
 	bool ok;
 	char cbor_str[128];
