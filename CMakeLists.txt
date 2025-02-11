@@ -8,6 +8,7 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(rd_template)
 
 target_sources(app PRIVATE src/main.c)
+target_sources(app PRIVATE src/app_buzzer.c)
 target_sources(app PRIVATE src/app_rpc.c)
 target_sources(app PRIVATE src/app_settings.c)
 target_sources(app PRIVATE src/app_state.c)

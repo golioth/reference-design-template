@@ -12,6 +12,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include "app_settings.h"
 #include "app_state.h"
 #include "app_sensors.h"
+#include "app_buzzer.h"
 #include <golioth/client.h>
 #include <golioth/fw_update.h>
 #include <samples/common/net_connect.h>
@@ -148,6 +149,9 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t
 	/* This function is an Interrupt Service Routine. Do not call functions that
 	 * use other threads, or perform long-running operations here
 	 */
+	#if defined(CONFIG_BOARD_ALUDEL_ELIXIR_NRF9160_NS)
+		play_beep_once();
+	#endif /* CONFIG_BOARD_ALUDEL_ELIXIR_NS */
 	k_wakeup(_system_thread);
 }
 
@@ -224,6 +228,11 @@ int main(void)
 	/* Block until connected to Golioth */
 	k_sem_take(&connected, K_FOREVER);
 #endif /* CONFIG_SOC_NRF9160 */
+
+	err = app_buzzer_init();
+	if (err) {
+		LOG_ERR("Unable to configure buzzer");
+	}
 
 	/* Set up user button */
 	err = gpio_pin_configure_dt(&user_btn, GPIO_INPUT);
