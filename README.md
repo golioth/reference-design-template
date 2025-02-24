@@ -114,7 +114,7 @@ The concept of Digital Twin is demonstrated with the LightDB State
 }
 ```
 
-But default the state values will be `0` and `1`. Try updating the
+By default the state values will be `0` and `1`. Try updating the
 `desired` values and observe how the device updates its state.
 
 ### OTA Firmware Update
