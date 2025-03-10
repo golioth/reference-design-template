@@ -18,7 +18,7 @@ LOG_MODULE_REGISTER(golioth_rd_template, LOG_LEVEL_DBG);
 #include <samples/common/sample_credentials.h>
 #include <zephyr/kernel.h>
 
-#ifdef CONFIG_SOC_NRF9160
+#ifdef CONFIG_SOC_SERIES_NRF91X
 #include <modem/lte_lc.h>
 #endif
 #ifdef CONFIG_LIB_OSTENTUS
@@ -102,7 +102,7 @@ static void start_golioth_client(void)
 	app_rpc_register(client);
 }
 
-#ifdef CONFIG_SOC_NRF9160
+#ifdef CONFIG_SOC_SERIES_NRF91X
 
 static void lte_handler(const struct lte_lc_evt *const evt)
 {
@@ -122,7 +122,7 @@ static void lte_handler(const struct lte_lc_evt *const evt)
 	}
 }
 
-#endif /* CONFIG_SOC_NRF9160 */
+#endif /* CONFIG_SOC_SERIES_NRF91X */
 
 #ifdef CONFIG_MODEM_INFO
 static void log_modem_firmware_version(void)
@@ -202,7 +202,7 @@ int main(void)
 	}
 #endif /* #if DT_NODE_EXISTS(DT_ALIAS(golioth_led)) */
 
-#ifdef CONFIG_SOC_NRF9160
+#ifdef CONFIG_SOC_SERIES_NRF91X
 	/* Start LTE asynchronously if the nRF9160 is used.
 	 * Golioth Client will start automatically when LTE connects
 	 */
@@ -223,7 +223,7 @@ int main(void)
 
 	/* Block until connected to Golioth */
 	k_sem_take(&connected, K_FOREVER);
-#endif /* CONFIG_SOC_NRF9160 */
+#endif /* CONFIG_SOC_SERIES_NRF91X */
 
 	/* Set up user button */
 	err = gpio_pin_configure_dt(&user_btn, GPIO_INPUT);
