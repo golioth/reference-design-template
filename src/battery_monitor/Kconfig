@@ -5,9 +5,28 @@
 #
 
 config ALUDEL_BATTERY_MONITOR
-	bool "Battery monitoring library for the Golioth Aludel-Mini"
+	bool "Battery monitoring library for the Golioth RD Template"
+	help
+	  Build and link common code for the battery monitor.
+
+if ALUDEL_BATTERY_MONITOR
+
+config ALUDEL_BATTERY_MONITOR_VOLTAGE_DIVIDER
+	bool
+	depends on !DT_HAS_MAXIM_MAX17262_ENABLED
+	default y
 	select ADC
 	select ADC_ASYNC
 	select ADC_NRFX_SAADC
 	help
-	  Build and link common code for the battery monitor.
+	  Select symbols necessary for measuring battery voltage with a voltage divider.
+
+config ALUDEL_BATTERY_MONITOR_MAX17262
+	bool
+	depends on DT_HAS_MAXIM_MAX17262_ENABLED
+	default y
+	select SENSOR
+	help
+	  Select symbols necessary for measuring battery voltage with the MAX17262 fuel gauge.
+
+endif # ALUDEL_BATTERY_MONITOR
