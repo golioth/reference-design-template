@@ -12,10 +12,11 @@ manifest:
       west-commands: scripts/west-commands.yml
       submodules: true
       import:
-        file: west-ncs.yml
+        file: west-zephyr.yml
         path-prefix: deps
         name-allowlist:
           - nrf
+          - hal_nxp
           - zephyr
           - cmsis
           - hal_nordic
