@@ -13,7 +13,7 @@ on:
       BOARD:
         required: true
         type: string
-        default: aludel_mini_v1_sparkfun9160_ns
+        default: nrf9160dk/nrf9160/ns
       ARTIFACT:
         required: true
         type: boolean
