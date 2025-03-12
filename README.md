@@ -29,14 +29,25 @@ components.
 
 ## Golioth Features
 
-This app currently implements Over-the-Air (OTA) firmware updates,
-Settings Service, Logging, RPC, and time-series Stream data, and LightDB
-State data.
+This app implements:
+
+  - [Device Settings
+    Service](https://docs.golioth.io/firmware/golioth-firmware-sdk/device-settings-service)
+  - [Remote Procedure Call
+    (RPC)](https://docs.golioth.io/firmware/golioth-firmware-sdk/remote-procedure-call)
+  - [Stream
+    Client](https://docs.golioth.io/firmware/golioth-firmware-sdk/stream-client)
+  - [LightDB State
+    Client](https://docs.golioth.io/firmware/golioth-firmware-sdk/light-db-state/)
+  - [Over-the-Air (OTA) Firmware
+    Upgrade](https://docs.golioth.io/firmware/golioth-firmware-sdk/firmware-upgrade/firmware-upgrade)
+  - [Backend
+    Logging](https://docs.golioth.io/device-management/logging/)
 
 ### Settings Service
 
-The following settings should be set in the Device Settings menu of the
-[Golioth Console](https://console.golioth.io).
+The following settings should be set in [the Device Settings menu of the
+Golioth Console](https://console.golioth.io/device-settings).
 
   - `LOOP_DELAY_S`
     Adjusts the delay between sensor readings. Set to an integer value
@@ -46,8 +57,8 @@ The following settings should be set in the Device Settings menu of the
 
 ### Remote Procedure Call (RPC) Service
 
-The following RPCs can be initiated in the Remote Procedure Call menu of
-the [Golioth Console](https://console.golioth.io).
+The following RPCs can be initiated in the Remote Procedure Call tab of
+each device in the [Golioth Console](https://console.golioth.io).
 
   - `get_network_info`
     Query and return network information.
