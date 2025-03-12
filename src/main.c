@@ -38,7 +38,7 @@ static const struct device *o_dev = DEVICE_DT_GET_ANY(golioth_ostentus);
 
 /* Current firmware version; update in VERSION */
 static const char *_current_version =
-    STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
+	STRINGIFY(APP_VERSION_MAJOR) "." STRINGIFY(APP_VERSION_MINOR) "." STRINGIFY(APP_PATCHLEVEL);
 
 static struct golioth_client *client;
 K_SEM_DEFINE(connected, 0, 1);
@@ -59,8 +59,7 @@ void wake_system_thread(void)
 	k_wakeup(_system_thread);
 }
 
-static void on_client_event(struct golioth_client *client,
-			    enum golioth_client_event event,
+static void on_client_event(struct golioth_client *client, enum golioth_client_event event,
 			    void *arg)
 {
 	bool is_connected = (event == GOLIOTH_CLIENT_EVENT_CONNECTED);
@@ -85,7 +84,6 @@ static void start_golioth_client(void)
 
 	/* Initialize DFU components */
 	golioth_fw_update_init(client, _current_version);
-
 
 	/*** Call Golioth APIs for other services in dedicated app files ***/
 

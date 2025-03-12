@@ -89,8 +89,7 @@ static enum golioth_rpc_status on_set_log_level(zcbor_state_t *request_params_ar
 }
 
 static enum golioth_rpc_status on_reboot(zcbor_state_t *request_params_array,
-					 zcbor_state_t *response_detail_map,
-					 void *callback_arg)
+					 zcbor_state_t *response_detail_map, void *callback_arg)
 {
 	/* Use work queue so this RPC can return confirmation to Golioth */
 	k_work_submit(&reboot_work);
