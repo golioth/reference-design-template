@@ -8,7 +8,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [template_v2.6.0] - 2024-01-24
+## [template_v2.7.0] - 2025-05-09
+
+### Changed
+
+- Upgrade to Golioth Firmware SDK at
+  [`v0.18.0`](https://github.com/golioth/golioth-firmware-sdk/releases/tag/v0.18.0)
+- Kconfig: move symbols common to nRF91 to overlay in new `socs` folder.
+- Use CONFIG_SOC_SERIES_NRF91X over CONFIG_SOC_NRF9160 to better support
+  nRF91 series (eg: nRF9151).
+- Battery monitor is now a separate Zephyr module.
+- README: moved from RST to MD.
+
+### Added
+
+- Kconfig symbol for CoAP path length based on SDK guidance.
+
+### Fixed
+
+- Corrected CHANGELOG year for template_v2.6.0 release.
+- Gracefully handle devicetree with no `golioth_led` alias.
+
+### Removed
+
+- Remove support for Aludel Mini hardware which is now end-of-life.
+
+## [template_v2.6.0] - 2025-01-24
 
 ### Changed
 
