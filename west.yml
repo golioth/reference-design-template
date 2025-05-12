@@ -47,7 +47,7 @@ manifest:
       revision: v1.2.0
       url: https://github.com/golioth/zephyr-network-info
 
-    - name: Golioth Battery Monitor
+    - name: golioth-battery-monitor
       path: deps/modules/lib/battery-monitor
       revision: v1.0.0
       url: https://github.com/golioth/battery-monitor
