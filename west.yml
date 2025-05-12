@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 manifest:
-  version: 0.8
+  version: 1.0
 
   projects:
     - name: golioth
