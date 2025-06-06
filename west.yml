@@ -49,7 +49,7 @@ manifest:
 
     - name: golioth-battery-monitor
       path: deps/modules/lib/battery-monitor
-      revision: v1.0.0
+      revision: v1.1.0
       url: https://github.com/golioth/battery-monitor
 
   self:
