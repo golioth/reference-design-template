@@ -257,7 +257,7 @@ int main(void)
 					   LABEL_BATTERY,
 					   strlen(LABEL_BATTERY));
 			ostentus_slide_add(o_dev,
-					   BATTERY_LVL,
+					   BATTERY_PCT,
 					   LABEL_BATTERY,
 					   strlen(LABEL_BATTERY));
 		));

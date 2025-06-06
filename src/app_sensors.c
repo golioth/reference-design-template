@@ -52,9 +52,9 @@ void app_sensors_read_and_stream(void)
 					   get_batt_v_str(),
 					   strlen(get_batt_v_str()));
 			ostentus_slide_set(o_dev,
-					   BATTERY_LVL,
-					   get_batt_lvl_str(),
-					   strlen(get_batt_lvl_str()));
+					   BATTERY_PCT,
+					   get_batt_pct_str(),
+					   strlen(get_batt_pct_str()));
 		));
 	));
 
