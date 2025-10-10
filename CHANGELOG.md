@@ -8,6 +8,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [template_v2.8.0] - 2025-10-10
+
+### Changed
+
+- Upgrade to Golioth Firmware SDK at
+  [`v0.21.0`](https://github.com/golioth/golioth-firmware-sdk/releases/tag/v0.21.0)
+- Upgrade golioth-zephyr-boards to
+  [`v2.1.1`](https://github.com/golioth/golioth-zephyr-boards/releases/tag/v2.1.1)
+- Upgrade golioth-battery-monitor to
+  [`v1.1.0`](https://github.com/golioth/battery-monitor/releases/tag/v1.1.0)
+
 ## [template_v2.7.2] - 2025-06-03
 
 ### Changed
