@@ -7,7 +7,7 @@ manifest:
   projects:
     - name: golioth
       path: modules/lib/golioth-firmware-sdk
-      revision: v0.18.1
+      revision: v0.21.0
       url: https://github.com/golioth/golioth-firmware-sdk.git
       west-commands: scripts/west-commands.yml
       submodules: true
@@ -17,7 +17,7 @@ manifest:
         name-allowlist:
           - nrf
           - zephyr
-          - cmsis
+          - cmsis_6
           - hal_nordic
           - mbedtls
           - mbedtls-nrf
